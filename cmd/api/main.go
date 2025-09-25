@@ -11,6 +11,7 @@ import (
 	"github.com/lstama/cardtalogue-backend/internal/repository"
 	"github.com/lstama/cardtalogue-backend/internal/service"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	_ "github.com/lstama/cardtalogue-backend/docs"
@@ -101,9 +102,6 @@ func main() {
 		cfg.JWTSecret,
 	)
 
-	// Add swagger endpoint
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
 	// Start server
 	log.Printf("Server starting on port %s", cfg.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Port, router))
@@ -121,6 +119,16 @@ func setupRouter(
 	jwtSecret string,
 ) *gin.Engine {
 	router := gin.Default()
+
+	// CORS configuration
+	router.Use(cors.New(cors.Config{
+		// AllowOrigins:     []string{"*"},
+		AllowAllOrigins:  true,
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
 
 	// Middleware
 	router.Use(gin.Logger())
@@ -241,6 +249,9 @@ func setupRouter(
 			}
 		}
 	}
+
+	// Add swagger endpoint
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return router
 }
