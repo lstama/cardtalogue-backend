@@ -5,12 +5,14 @@ import (
 )
 
 type Storage struct {
-	ID          uint      `json:"id" gorm:"primaryKey"`
-	Code        string    `json:"code" gorm:"not null;size:255" validate:"required,min=1,max=255"`
-	Name        string    `json:"name" gorm:"not null;size:255" validate:"required,min=1,max=255"`
-	Description string    `json:"description" gorm:"type:text"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID            uint      `json:"id" gorm:"primaryKey"`
+	Code          string    `json:"code" gorm:"not null;size:255" validate:"required,min=1,max=255"`
+	LowercaseCode string    `json:"lowercase_code" gorm:"not null;size:255;index"` // for case-insensitive search
+	Name          string    `json:"name" gorm:"not null;size:255" validate:"required,min=1,max=255"`
+	LowercaseName string    `json:"lowercase_name" gorm:"not null;size:255;index"` // for case-insensitive search
+	Description   string    `json:"description" gorm:"type:text"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 type CreateStorageRequest struct {

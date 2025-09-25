@@ -13,6 +13,7 @@ type RarityService interface {
 	GetRarities(limit, offset int) ([]*models.RarityResponse, int64, error)
 	UpdateRarity(id uint, req *models.UpdateRarityRequest) (*models.RarityResponse, error)
 	DeleteRarity(id uint) error
+	SearchRarities(query_string string, limit, offset int) ([]*models.RarityResponse, error)
 }
 
 type rarityService struct {
@@ -96,4 +97,23 @@ func (s *rarityService) toRarityResponse(rarity *models.Rarity) *models.RarityRe
 		CreatedAt: rarity.CreatedAt,
 		UpdatedAt: rarity.UpdatedAt,
 	}
+}
+
+func (s *rarityService) SearchRarities(query_string string, limit, offset int) ([]*models.RarityResponse, error) {
+	// Set default limit if not provided
+	if limit <= 0 {
+		limit = 20
+	}
+	if limit > 100 {
+		limit = 100
+	}
+	rarities, err := s.rarityRepo.Search(query_string, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	responses := make([]*models.RarityResponse, len(rarities))
+	for i, rarity := range rarities {
+		responses[i] = s.toRarityResponse(rarity)
+	}
+	return responses, nil
 }

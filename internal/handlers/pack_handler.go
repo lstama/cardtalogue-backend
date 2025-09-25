@@ -180,3 +180,40 @@ func (h *PackHandler) DeletePack(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "pack deleted successfully"})
 }
+
+// SearchPacks godoc
+// @Summary Search packs
+// @Description Search for packs based on game ID, language ID, and query string with pagination, use id = 0 to ignore a filter
+// @Tags Packs
+// @Accept json
+// @Produce json
+// @Param game_id query int true "Game ID"
+// @Param language_id query int true "Language ID"
+// @Param query query string true "Search query"
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {object} object{data=[]models.PackResponse, meta=object{total=int, limit=int, offset=int}}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /packs/search [get]
+func (h *PackHandler) SearchPacks(c *gin.Context) {
+	gameID, _ := strconv.Atoi(c.Query("game_id"))
+	languageID, _ := strconv.Atoi(c.Query("language_id"))
+	queryString := c.Query("query")
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	offset, _ := strconv.Atoi(c.Query("offset"))
+
+	packs, err := h.packService.SearchPacks(gameID, languageID, queryString, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": packs,
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+		},
+	})
+}

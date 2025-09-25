@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/lstama/cardtalogue-backend/internal/models"
 	"gorm.io/gorm"
@@ -14,6 +15,7 @@ type StorageRepository interface {
 	Update(storage *models.Storage) error
 	Delete(id uint) error
 	Count() (int64, error)
+	Search(query_string string, limit, offset int) ([]*models.Storage, error)
 }
 
 type storageRepository struct {
@@ -71,4 +73,21 @@ func (r *storageRepository) Count() (int64, error) {
 		return 0, fmt.Errorf("failed to count storages: %w", err)
 	}
 	return count, nil
+}
+
+func (r *storageRepository) Search(query_string string, limit, offset int) ([]*models.Storage, error) {
+	var storages []*models.Storage
+	query := r.db.Limit(limit).Offset(offset).Order("created_at DESC")
+
+	query_string = strings.ToLower(query_string)
+
+	if query_string != "" {
+		likeQuery := fmt.Sprintf("%%%s%%", query_string)
+		query = query.Where("lowercase_name LIKE ? OR lowercase_code LIKE ?", likeQuery, likeQuery)
+	}
+
+	if err := query.Find(&storages).Error; err != nil {
+		return nil, fmt.Errorf("failed to search cards: %w", err)
+	}
+	return storages, nil
 }

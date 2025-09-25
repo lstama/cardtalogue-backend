@@ -168,3 +168,35 @@ func (h *StorageHandler) DeleteStorage(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "storage deleted successfully"})
 }
+
+// SearchStorages godoc
+// @Summary Search storages
+// @Description Search for storages based on a query string with pagination
+// @Tags Storages
+// @Accept json
+// @Produce json
+// @Param query_string query string true "Query string"
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {object} object{data=[]models.StorageResponse, meta=object{limit=int, offset=int}}
+// @Failure 500 {object} map[string]string
+// @Router /storages/search [get]
+func (h *StorageHandler) SearchStorages(c *gin.Context) {
+	queryString := c.Query("query_string")
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	offset, _ := strconv.Atoi(c.Query("offset"))
+
+	storages, err := h.storageService.SearchStorages(queryString, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": storages,
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+		},
+	})
+}

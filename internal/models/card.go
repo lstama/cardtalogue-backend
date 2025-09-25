@@ -9,7 +9,9 @@ import (
 type Card struct {
 	ID              uint           `json:"id" gorm:"primaryKey"`
 	Code            string         `json:"code" gorm:"not null;size:255" validate:"required,min=1,max=255"`
+	LowercaseCode   string         `json:"lowercase_code" gorm:"not null;size:255;index"` // for case-insensitive search
 	Name            string         `json:"name" gorm:"not null;size:255" validate:"required,min=1,max=255"`
+	LowercaseName   string         `json:"lowercase_name" gorm:"not null;size:255;index"` // for case-insensitive search
 	Price           uint           `json:"price" gorm:"not null;default:100" validate:"min=0,max=1000000000"`
 	PriceMultiplier uint           `json:"price_multiplier" gorm:"not null;default:120" validate:"min=1,max=100000"`
 	Quantity        uint           `json:"quantity" gorm:"not null;default:1" validate:"min=0,max=1000000"`

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/lstama/cardtalogue-backend/internal/models"
 
@@ -15,6 +16,7 @@ type PackRepository interface {
 	Update(pack *models.Pack) error
 	Delete(id uint) error
 	Count() (int64, error)
+	Search(game_id int, language_id int, query_string string, limit, offset int) ([]*models.Pack, error)
 }
 
 type packRepository struct {
@@ -72,4 +74,27 @@ func (r *packRepository) Count() (int64, error) {
 		return 0, fmt.Errorf("failed to count packs: %w", err)
 	}
 	return count, nil
+}
+
+func (r *packRepository) Search(game_id int, language_id int, query_string string, limit, offset int) ([]*models.Pack, error) {
+	var packs []*models.Pack
+	query := r.db.Preload("Game").Preload("Language").Limit(limit).Offset(offset).Order("created_at DESC")
+
+	query_string = strings.ToLower(query_string)
+
+	if game_id > 0 {
+		query = query.Where("game_id = ?", game_id)
+	}
+	if language_id > 0 {
+		query = query.Where("language_id = ?", language_id)
+	}
+	if query_string != "" {
+		likeQuery := fmt.Sprintf("%%%s%%", query_string)
+		query = query.Where("lowercase_name LIKE ? OR lowercase_code LIKE ?", likeQuery, likeQuery)
+	}
+
+	if err := query.Find(&packs).Error; err != nil {
+		return nil, fmt.Errorf("failed to search cards: %w", err)
+	}
+	return packs, nil
 }

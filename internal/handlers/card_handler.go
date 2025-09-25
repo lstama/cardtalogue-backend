@@ -244,3 +244,43 @@ func (h *CardHandler) DeleteCard(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "card deleted successfully"})
 }
+
+// SearchCards godoc
+// @Summary Search cards
+// @Description Search for cards based on game, language, pack, and query string with pagination, use id = 0 to ignore a filter
+// @Tags Cards
+// @Accept json
+// @Produce json
+// @Param game_id query int false "Game ID"
+// @Param language_id query int false "Language ID"
+// @Param pack_id query int false "Pack ID"
+// @Param query query string false "Search query"
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {object} object{data=[]models.CardResponse, meta=object{limit=int, offset=int}}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /cards/search [get]
+func (h *CardHandler) SearchCards(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	offset, _ := strconv.Atoi(c.Query("offset"))
+
+	game_id, _ := strconv.Atoi(c.Query("game_id"))
+	language_id, _ := strconv.Atoi(c.Query("language_id"))
+	pack_id, _ := strconv.Atoi(c.Query("pack_id"))
+	query_string := c.Query("query")
+
+	cards, err := h.cardService.SearchCards(game_id, language_id, pack_id, query_string, limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": cards,
+		"meta": gin.H{
+			"limit":  limit,
+			"offset": offset,
+		},
+	})
+}

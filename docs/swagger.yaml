@@ -931,6 +931,73 @@ paths:
       summary: Get card by ID, with protected data that isn't available to public
       tags:
       - Cards
+  /cards/search:
+    get:
+      consumes:
+      - application/json
+      description: Search for cards based on game, language, pack, and query string
+        with pagination, use id = 0 to ignore a filter
+      parameters:
+      - description: Game ID
+        in: query
+        name: game_id
+        type: integer
+      - description: Language ID
+        in: query
+        name: language_id
+        type: integer
+      - description: Pack ID
+        in: query
+        name: pack_id
+        type: integer
+      - description: Search query
+        in: query
+        name: query
+        type: string
+      - default: 10
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              ' meta':
+                properties:
+                  ' offset':
+                    type: integer
+                  limit:
+                    type: integer
+                type: object
+              data:
+                items:
+                  $ref: '#/definitions/models.CardResponse'
+                type: array
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search cards
+      tags:
+      - Cards
   /games:
     get:
       consumes:
@@ -1143,6 +1210,54 @@ paths:
       summary: Update game by ID
       tags:
       - Games
+  /games/search:
+    get:
+      consumes:
+      - application/json
+      description: Search for games by name with pagination
+      parameters:
+      - description: Search query
+        in: query
+        name: query
+        required: true
+        type: string
+      - default: 10
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                items:
+                  $ref: '#/definitions/models.GameResponse'
+                type: array
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search games
+      tags:
+      - Games
   /languages:
     get:
       consumes:
@@ -1347,6 +1462,54 @@ paths:
               type: string
             type: object
       summary: Update a language
+      tags:
+      - Languages
+  /languages/search:
+    get:
+      consumes:
+      - application/json
+      description: Search for languages by name or code with pagination
+      parameters:
+      - description: Search query
+        in: query
+        name: query
+        required: true
+        type: string
+      - default: 10
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                items:
+                  $ref: '#/definitions/models.LanguageResponse'
+                type: array
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search languages
       tags:
       - Languages
   /packs:
@@ -1559,6 +1722,74 @@ paths:
               type: string
             type: object
       summary: Update a pack
+      tags:
+      - Packs
+  /packs/search:
+    get:
+      consumes:
+      - application/json
+      description: Search for packs based on game ID, language ID, and query string
+        with pagination, use id = 0 to ignore a filter
+      parameters:
+      - description: Game ID
+        in: query
+        name: game_id
+        required: true
+        type: integer
+      - description: Language ID
+        in: query
+        name: language_id
+        required: true
+        type: integer
+      - description: Search query
+        in: query
+        name: query
+        required: true
+        type: string
+      - default: 10
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              ' meta':
+                properties:
+                  ' limit':
+                    type: integer
+                  ' offset':
+                    type: integer
+                  total:
+                    type: integer
+                type: object
+              data:
+                items:
+                  $ref: '#/definitions/models.PackResponse'
+                type: array
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search packs
       tags:
       - Packs
   /profile:
@@ -1838,6 +2069,54 @@ paths:
       summary: Update a rarity
       tags:
       - Rarities
+  /rarities/search:
+    get:
+      consumes:
+      - application/json
+      description: Search rarities by query string with pagination
+      parameters:
+      - description: Search query
+        in: query
+        name: query
+        required: true
+        type: string
+      - default: 10
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                items:
+                  $ref: '#/definitions/models.RarityResponse'
+                type: array
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search rarities
+      tags:
+      - Rarities
   /storages:
     get:
       consumes:
@@ -2042,6 +2321,55 @@ paths:
               type: string
             type: object
       summary: Update storage by ID
+      tags:
+      - Storages
+  /storages/search:
+    get:
+      consumes:
+      - application/json
+      description: Search for storages based on a query string with pagination
+      parameters:
+      - description: Query string
+        in: query
+        name: query_string
+        required: true
+        type: string
+      - default: 10
+        description: Limit
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              ' meta':
+                properties:
+                  ' offset':
+                    type: integer
+                  limit:
+                    type: integer
+                type: object
+              data:
+                items:
+                  $ref: '#/definitions/models.StorageResponse'
+                type: array
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Search storages
       tags:
       - Storages
   /users:

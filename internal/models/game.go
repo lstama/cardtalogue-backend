@@ -5,10 +5,11 @@ import (
 )
 
 type Game struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	Name      string    `json:"name" gorm:"not null;size:255" validate:"required,min=1,max=255"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID            uint      `json:"id" gorm:"primaryKey"`
+	Name          string    `json:"name" gorm:"not null;size:255" validate:"required,min=1,max=255"`
+	LowercaseName string    `json:"lowercase_name" gorm:"not null;size:255;index"` // for case-insensitive search
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 type CreateGameRequest struct {

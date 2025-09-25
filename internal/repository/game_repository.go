@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/lstama/cardtalogue-backend/internal/models"
 	"gorm.io/gorm"
@@ -14,6 +15,7 @@ type GameRepository interface {
 	Update(game *models.Game) error
 	Delete(id uint) error
 	Count() (int64, error)
+	Search(query_string string, limit, offset int) ([]*models.Game, error)
 }
 
 type gameRepository struct {
@@ -71,4 +73,21 @@ func (r *gameRepository) Count() (int64, error) {
 		return 0, fmt.Errorf("failed to count games: %w", err)
 	}
 	return count, nil
+}
+
+func (r *gameRepository) Search(query_string string, limit, offset int) ([]*models.Game, error) {
+	var games []*models.Game
+	query := r.db.Limit(limit).Offset(offset).Order("created_at DESC")
+
+	query_string = strings.ToLower(query_string)
+
+	if query_string != "" {
+		likeQuery := fmt.Sprintf("%%%s%%", query_string)
+		query = query.Where("lowercase_name LIKE ?", likeQuery)
+	}
+
+	if err := query.Find(&games).Error; err != nil {
+		return nil, fmt.Errorf("failed to search cards: %w", err)
+	}
+	return games, nil
 }

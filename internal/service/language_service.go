@@ -13,6 +13,7 @@ type LanguageService interface {
 	GetLanguages(limit, offset int) ([]*models.LanguageResponse, int64, error)
 	UpdateLanguage(id uint, req *models.UpdateLanguageRequest) (*models.LanguageResponse, error)
 	DeleteLanguage(id uint) error
+	SearchLanguages(query_string string, limit, offset int) ([]*models.LanguageResponse, error)
 }
 
 type languageService struct {
@@ -96,4 +97,22 @@ func (s *languageService) toLanguageResponse(language *models.Language) *models.
 		CreatedAt: language.CreatedAt,
 		UpdatedAt: language.UpdatedAt,
 	}
+}
+
+func (s *languageService) SearchLanguages(query_string string, limit, offset int) ([]*models.LanguageResponse, error) {
+	if limit <= 0 {
+		limit = 20
+	}
+	if limit > 100 {
+		limit = 100
+	}
+	languages, err := s.languageRepo.Search(query_string, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	responses := make([]*models.LanguageResponse, len(languages))
+	for i, language := range languages {
+		responses[i] = s.toLanguageResponse(language)
+	}
+	return responses, nil
 }
