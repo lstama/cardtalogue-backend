@@ -18,6 +18,17 @@ func NewGameHandler(gameService service.GameService) *GameHandler {
 	return &GameHandler{gameService: gameService}
 }
 
+// CreateGame godoc
+// @Summary Create a new game
+// @Description Create a new game with the provided details
+// @Tags Games
+// @Accept json
+// @Produce json
+// @Param request body models.CreateGameRequest true "Game details"
+// @Success 201 {object} object{data=models.GameResponse}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /games [post]
 func (h *GameHandler) CreateGame(c *gin.Context) {
 	var req models.CreateGameRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -32,6 +43,17 @@ func (h *GameHandler) CreateGame(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"data": game})
 }
 
+// GetGame godoc
+// @Summary Get game by ID
+// @Description Retrieve a game by its ID
+// @Tags Games
+// @Accept json
+// @Produce json
+// @Param id path int true "Game ID"
+// @Success 200 {object} object{data=models.GameResponse}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /games/{id} [get]
 func (h *GameHandler) GetGame(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -51,6 +73,18 @@ func (h *GameHandler) GetGame(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": game})
 }
 
+// GetGames godoc
+// @Summary Get list of games
+// @Description Retrieve a list of games with pagination
+// @Tags Games
+// @Accept json
+// @Produce json
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {object} object{data=[]models.GameResponse, meta=object{total=int, limit=int, offset=int}}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /games [get]
 func (h *GameHandler) GetGames(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.Query("limit"))
 	offset, _ := strconv.Atoi(c.Query("offset"))
@@ -69,6 +103,19 @@ func (h *GameHandler) GetGames(c *gin.Context) {
 	})
 }
 
+// UpdateGame godoc
+// @Summary Update game by ID
+// @Description Update a game's details by its ID
+// @Tags Games
+// @Accept json
+// @Produce json
+// @Param id path int true "Game ID"
+// @Param request body models.UpdateGameRequest true "Updated game details"
+// @Success 200 {object} object{data=models.GameResponse}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /games/{id} [put]
 func (h *GameHandler) UpdateGame(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -93,6 +140,18 @@ func (h *GameHandler) UpdateGame(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": game})
 }
 
+// DeleteGame godoc
+// @Summary Delete game by ID
+// @Description Delete a game by its ID
+// @Tags Games
+// @Accept json
+// @Produce json
+// @Param id path int true "Game ID"
+// @Success 200 {object} object{message=string}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /games/{id} [delete]
 func (h *GameHandler) DeleteGame(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)

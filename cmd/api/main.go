@@ -185,6 +185,10 @@ func setupRouter(
 			// Cards management
 			cards := protected.Group("/cards")
 			{
+				// Editors and Admins can get protected data
+				cards.GET("/protected", middleware.RequireRole("editor", "admin"), cardHandler.GetCardsProtected)
+				cards.GET("/protected/:id", middleware.RequireRole("editor", "admin"), cardHandler.GetCardProtected)
+
 				// Editors and Admins can create and update
 				cards.POST("", middleware.RequireRole("editor", "admin"), cardHandler.CreateCard)
 				cards.PUT("/:id", middleware.RequireRole("editor", "admin"), cardHandler.UpdateCard)

@@ -18,6 +18,17 @@ func NewPackHandler(packService service.PackService) *PackHandler {
 	return &PackHandler{packService: packService}
 }
 
+// CreatePack godoc
+// @Summary Create a new pack
+// @Description Create a new pack with the provided details
+// @Tags Packs
+// @Accept json
+// @Produce json
+// @Param request body models.CreatePackRequest true "Pack details"
+// @Success 201 {object} object{data=models.PackResponse}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /packs [post]
 func (h *PackHandler) CreatePack(c *gin.Context) {
 	var req models.CreatePackRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -34,6 +45,17 @@ func (h *PackHandler) CreatePack(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"data": pack})
 }
 
+// GetPack godoc
+// @Summary Get pack by ID
+// @Description Retrieve a pack by its ID
+// @Tags Packs
+// @Accept json
+// @Produce json
+// @Param id path int true "Pack ID"
+// @Success 200 {object} object{data=models.PackResponse}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /packs/{id} [get]
 func (h *PackHandler) GetPack(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -55,6 +77,18 @@ func (h *PackHandler) GetPack(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": pack})
 }
 
+// GetPacks godoc
+// @Summary Get list of packs
+// @Description Retrieve a list of packs with pagination
+// @Tags Packs
+// @Accept json
+// @Produce json
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {object} object{data=[]models.PackResponse, meta=object{total=int, limit=int, offset=int}}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /packs [get]
 func (h *PackHandler) GetPacks(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.Query("limit"))
 	offset, _ := strconv.Atoi(c.Query("offset"))
@@ -75,6 +109,19 @@ func (h *PackHandler) GetPacks(c *gin.Context) {
 	})
 }
 
+// UpdatePack godoc
+// @Summary Update a pack
+// @Description Update the details of an existing pack
+// @Tags Packs
+// @Accept json
+// @Produce json
+// @Param id path int true "Pack ID"
+// @Param request body models.UpdatePackRequest true "Updated pack details"
+// @Success 200 {object} object{data=models.PackResponse}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /packs/{id} [put]
 func (h *PackHandler) UpdatePack(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -102,6 +149,18 @@ func (h *PackHandler) UpdatePack(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": pack})
 }
 
+// DeletePack godoc
+// @Summary Delete a pack
+// @Description Delete a pack by its ID
+// @Tags Packs
+// @Accept json
+// @Produce json
+// @Param id path int true "Pack ID"
+// @Success 200 {object} object{message=string}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /packs/{id} [delete]
 func (h *PackHandler) DeletePack(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)

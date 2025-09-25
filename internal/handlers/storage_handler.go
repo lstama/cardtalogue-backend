@@ -18,6 +18,17 @@ func NewStorageHandler(storageService service.StorageService) *StorageHandler {
 	return &StorageHandler{storageService: storageService}
 }
 
+// CreateStorage godoc
+// @Summary Create a new storage
+// @Description Create a new storage with the provided details
+// @Tags Storages
+// @Accept json
+// @Produce json
+// @Param request body models.CreateStorageRequest true "Storage details"
+// @Success 201 {object} object{data=models.StorageResponse}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /storages [post]
 func (h *StorageHandler) CreateStorage(c *gin.Context) {
 	var req models.CreateStorageRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -32,6 +43,17 @@ func (h *StorageHandler) CreateStorage(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"data": storage})
 }
 
+// GetStorage godoc
+// @Summary Get storage by ID
+// @Description Retrieve a storage by its ID
+// @Tags Storages
+// @Accept json
+// @Produce json
+// @Param id path int true "Storage ID"
+// @Success 200 {object} object{data=models.StorageResponse}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /storages/{id} [get]
 func (h *StorageHandler) GetStorage(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -51,6 +73,17 @@ func (h *StorageHandler) GetStorage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": storage})
 }
 
+// GetStorages godoc
+// @Summary Get list of storages
+// @Description Retrieve a list of storages with pagination
+// @Tags Storages
+// @Accept json
+// @Produce json
+// @Param limit query int false "Limit" default(10)
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {object} object{data=[]models.StorageResponse, meta=object{total=int, limit=int, offset=int}}
+// @Failure 500 {object} map[string]string
+// @Router /storages [get]
 func (h *StorageHandler) GetStorages(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.Query("limit"))
 	offset, _ := strconv.Atoi(c.Query("offset"))
@@ -69,6 +102,19 @@ func (h *StorageHandler) GetStorages(c *gin.Context) {
 	})
 }
 
+// UpdateStorage godoc
+// @Summary Update storage by ID
+// @Description Update an existing storage with the provided details
+// @Tags Storages
+// @Accept json
+// @Produce json
+// @Param id path int true "Storage ID"
+// @Param request body models.UpdateStorageRequest true "Updated storage details"
+// @Success 200 {object} object{data=models.StorageResponse}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /storages/{id} [put]
 func (h *StorageHandler) UpdateStorage(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
@@ -93,6 +139,18 @@ func (h *StorageHandler) UpdateStorage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": storage})
 }
 
+// DeleteStorage godoc
+// @Summary Delete storage by ID
+// @Description Delete an existing storage by its ID
+// @Tags Storages
+// @Accept json
+// @Produce json
+// @Param id path int true "Storage ID"
+// @Success 200 {object} object{message=string}
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /storages/{id} [delete]
 func (h *StorageHandler) DeleteStorage(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
