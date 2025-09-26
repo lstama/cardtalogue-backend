@@ -81,7 +81,7 @@ func (h *GameHandler) GetGame(c *gin.Context) {
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} object{data=[]models.GameResponse, meta=object{total=int, limit=int, offset=int}}
+// @Success 200 {object} object{data=[]models.GameResponse,meta=object{total=int,limit=int,offset=int}}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /games [get]
@@ -176,25 +176,28 @@ func (h *GameHandler) DeleteGame(c *gin.Context) {
 // @Tags Games
 // @Accept json
 // @Produce json
-// @Param query query string true "Search query"
+// @Param query query string false "Search query"
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} object{data=[]models.GameResponse}
+// @Success 200 {object} object{data=[]models.GameResponse,meta=object{total=int,limit=int,offset=int}}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /games/search [get]
 func (h *GameHandler) SearchGames(c *gin.Context) {
 	query := c.Query("query")
-	if query == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter is required"})
-		return
-	}
 	limit, _ := strconv.Atoi(c.Query("limit"))
 	offset, _ := strconv.Atoi(c.Query("offset"))
-	games, err := h.gameService.SearchGames(query, limit, offset)
+	games, total, err := h.gameService.SearchGames(query, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": games})
+	c.JSON(http.StatusOK, gin.H{
+		"data": games,
+		"meta": gin.H{
+			"total":  total,
+			"limit":  limit,
+			"offset": offset,
+		},
+	})
 }

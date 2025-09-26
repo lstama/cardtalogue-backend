@@ -15,7 +15,7 @@ type RarityRepository interface {
 	Update(rarity *models.Rarity) error
 	Delete(id uint) error
 	Count() (int64, error)
-	Search(query_string string, limit, offset int) ([]*models.Rarity, error)
+	Search(query_string string, limit, offset int) ([]*models.Rarity, int64, error)
 }
 
 type rarityRepository struct {
@@ -75,19 +75,23 @@ func (r *rarityRepository) Count() (int64, error) {
 	return count, nil
 }
 
-func (r *rarityRepository) Search(query_string string, limit, offset int) ([]*models.Rarity, error) {
+func (r *rarityRepository) Search(query_string string, limit, offset int) ([]*models.Rarity, int64, error) {
 	var rarities []*models.Rarity
-	query := r.db.Limit(limit).Offset(offset).Order("created_at DESC")
-
-	query_string = strings.ToLower(query_string)
+	query := r.db.Model(&models.Rarity{})
 
 	if query_string != "" {
-		likeQuery := fmt.Sprintf("%%%s%%", query_string)
+		likeQuery := "%" + strings.ToLower(query_string) + "%"
 		query = query.Where("lowercase_name LIKE ? OR lowercase_code LIKE ?", likeQuery, likeQuery)
 	}
 
-	if err := query.Find(&rarities).Error; err != nil {
-		return nil, fmt.Errorf("failed to search cards: %w", err)
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to count rarities: %w", err)
 	}
-	return rarities, nil
+
+	if err := query.Limit(limit).Offset(offset).Order("created_at DESC").Find(&rarities).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to search rarities: %w", err)
+	}
+
+	return rarities, total, nil
 }

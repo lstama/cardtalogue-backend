@@ -15,7 +15,7 @@ type StorageRepository interface {
 	Update(storage *models.Storage) error
 	Delete(id uint) error
 	Count() (int64, error)
-	Search(query_string string, limit, offset int) ([]*models.Storage, error)
+	Search(query_string string, limit, offset int) ([]*models.Storage, int64, error)
 }
 
 type storageRepository struct {
@@ -75,19 +75,19 @@ func (r *storageRepository) Count() (int64, error) {
 	return count, nil
 }
 
-func (r *storageRepository) Search(query_string string, limit, offset int) ([]*models.Storage, error) {
+func (r *storageRepository) Search(query_string string, limit, offset int) ([]*models.Storage, int64, error) {
 	var storages []*models.Storage
-	query := r.db.Limit(limit).Offset(offset).Order("created_at DESC")
-
-	query_string = strings.ToLower(query_string)
-
+	query := r.db.Model(&models.Storage{})
 	if query_string != "" {
-		likeQuery := fmt.Sprintf("%%%s%%", query_string)
-		query = query.Where("lowercase_name LIKE ? OR lowercase_code LIKE ?", likeQuery, likeQuery)
+		likeQuery := "%" + strings.ToLower(query_string) + "%"
+		query = query.Where("lowercase_name LIKE ?", likeQuery)
 	}
-
-	if err := query.Find(&storages).Error; err != nil {
-		return nil, fmt.Errorf("failed to search cards: %w", err)
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to count storages: %w", err)
 	}
-	return storages, nil
+	if err := query.Limit(limit).Offset(offset).Order("created_at DESC").Find(&storages).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to search storages: %w", err)
+	}
+	return storages, total, nil
 }

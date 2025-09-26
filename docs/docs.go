@@ -164,24 +164,24 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "properties": {
-                                " meta": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/models.CardResponse"
+                                    }
+                                },
+                                "meta": {
                                     "type": "object",
                                     "properties": {
-                                        " limit": {
+                                        "limit": {
                                             "type": "integer"
                                         },
-                                        " offset": {
+                                        "offset": {
                                             "type": "integer"
                                         },
                                         "total": {
                                             "type": "integer"
                                         }
-                                    }
-                                },
-                                "data": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/models.CardResponse"
                                     }
                                 }
                             }
@@ -298,24 +298,24 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "properties": {
-                                " meta": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/models.CardProtectedResponse"
+                                    }
+                                },
+                                "meta": {
                                     "type": "object",
                                     "properties": {
-                                        " limit": {
+                                        "limit": {
                                             "type": "integer"
                                         },
-                                        " offset": {
+                                        "offset": {
                                             "type": "integer"
                                         },
                                         "total": {
                                             "type": "integer"
                                         }
-                                    }
-                                },
-                                "data": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/models.CardProtectedResponse"
                                     }
                                 }
                             }
@@ -456,21 +456,24 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "properties": {
-                                " meta": {
-                                    "type": "object",
-                                    "properties": {
-                                        " offset": {
-                                            "type": "integer"
-                                        },
-                                        "limit": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                },
                                 "data": {
                                     "type": "array",
                                     "items": {
                                         "$ref": "#/definitions/models.CardResponse"
+                                    }
+                                },
+                                "meta": {
+                                    "type": "object",
+                                    "properties": {
+                                        "limit": {
+                                            "type": "integer"
+                                        },
+                                        "offset": {
+                                            "type": "integer"
+                                        },
+                                        "total": {
+                                            "type": "integer"
+                                        }
                                     }
                                 }
                             }
@@ -720,24 +723,24 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "properties": {
-                                " meta": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/models.GameResponse"
+                                    }
+                                },
+                                "meta": {
                                     "type": "object",
                                     "properties": {
-                                        " limit": {
+                                        "limit": {
                                             "type": "integer"
                                         },
-                                        " offset": {
+                                        "offset": {
                                             "type": "integer"
                                         },
                                         "total": {
                                             "type": "integer"
                                         }
-                                    }
-                                },
-                                "data": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/models.GameResponse"
                                     }
                                 }
                             }
@@ -837,8 +840,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Search query",
                         "name": "query",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "integer",
@@ -865,6 +867,20 @@ const docTemplate = `{
                                     "type": "array",
                                     "items": {
                                         "$ref": "#/definitions/models.GameResponse"
+                                    }
+                                },
+                                "meta": {
+                                    "type": "object",
+                                    "properties": {
+                                        "limit": {
+                                            "type": "integer"
+                                        },
+                                        "offset": {
+                                            "type": "integer"
+                                        },
+                                        "total": {
+                                            "type": "integer"
+                                        }
                                     }
                                 }
                             }
@@ -1114,24 +1130,24 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "properties": {
-                                " meta": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/models.LanguageResponse"
+                                    }
+                                },
+                                "meta": {
                                     "type": "object",
                                     "properties": {
-                                        " limit": {
+                                        "limit": {
                                             "type": "integer"
                                         },
-                                        " offset": {
+                                        "offset": {
                                             "type": "integer"
                                         },
                                         "total": {
                                             "type": "integer"
                                         }
-                                    }
-                                },
-                                "data": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/models.LanguageResponse"
                                     }
                                 }
                             }
@@ -1222,8 +1238,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Search query",
                         "name": "query",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "integer",
@@ -1250,6 +1265,20 @@ const docTemplate = `{
                                     "type": "array",
                                     "items": {
                                         "$ref": "#/definitions/models.LanguageResponse"
+                                    }
+                                },
+                                "meta": {
+                                    "type": "object",
+                                    "properties": {
+                                        "limit": {
+                                            "type": "integer"
+                                        },
+                                        "offset": {
+                                            "type": "integer"
+                                        },
+                                        "total": {
+                                            "type": "integer"
+                                        }
                                     }
                                 }
                             }
@@ -1499,24 +1528,24 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "properties": {
-                                " meta": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/models.PackResponse"
+                                    }
+                                },
+                                "meta": {
                                     "type": "object",
                                     "properties": {
-                                        " limit": {
+                                        "limit": {
                                             "type": "integer"
                                         },
-                                        " offset": {
+                                        "offset": {
                                             "type": "integer"
                                         },
                                         "total": {
                                             "type": "integer"
                                         }
-                                    }
-                                },
-                                "data": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/models.PackResponse"
                                     }
                                 }
                             }
@@ -1616,22 +1645,19 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Game ID",
                         "name": "game_id",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "integer",
                         "description": "Language ID",
                         "name": "language_id",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "Search query",
                         "name": "query",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "integer",
@@ -1654,24 +1680,24 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "properties": {
-                                " meta": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/models.PackResponse"
+                                    }
+                                },
+                                "meta": {
                                     "type": "object",
                                     "properties": {
-                                        " limit": {
+                                        "limit": {
                                             "type": "integer"
                                         },
-                                        " offset": {
+                                        "offset": {
                                             "type": "integer"
                                         },
                                         "total": {
                                             "type": "integer"
                                         }
-                                    }
-                                },
-                                "data": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/models.PackResponse"
                                     }
                                 }
                             }
@@ -2024,24 +2050,24 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "properties": {
-                                " meta": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/models.RarityResponse"
+                                    }
+                                },
+                                "meta": {
                                     "type": "object",
                                     "properties": {
-                                        " limit": {
+                                        "limit": {
                                             "type": "integer"
                                         },
-                                        " offset": {
+                                        "offset": {
                                             "type": "integer"
                                         },
                                         "total": {
                                             "type": "integer"
                                         }
-                                    }
-                                },
-                                "data": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/models.RarityResponse"
                                     }
                                 }
                             }
@@ -2141,8 +2167,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Search query",
                         "name": "query",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "integer",
@@ -2169,6 +2194,20 @@ const docTemplate = `{
                                     "type": "array",
                                     "items": {
                                         "$ref": "#/definitions/models.RarityResponse"
+                                    }
+                                },
+                                "meta": {
+                                    "type": "object",
+                                    "properties": {
+                                        "limit": {
+                                            "type": "integer"
+                                        },
+                                        "offset": {
+                                            "type": "integer"
+                                        },
+                                        "total": {
+                                            "type": "integer"
+                                        }
                                     }
                                 }
                             }
@@ -2418,24 +2457,24 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "properties": {
-                                " meta": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/models.StorageResponse"
+                                    }
+                                },
+                                "meta": {
                                     "type": "object",
                                     "properties": {
-                                        " limit": {
+                                        "limit": {
                                             "type": "integer"
                                         },
-                                        " offset": {
+                                        "offset": {
                                             "type": "integer"
                                         },
                                         "total": {
                                             "type": "integer"
                                         }
-                                    }
-                                },
-                                "data": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/definitions/models.StorageResponse"
                                     }
                                 }
                             }
@@ -2550,21 +2589,24 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "properties": {
-                                " meta": {
-                                    "type": "object",
-                                    "properties": {
-                                        " offset": {
-                                            "type": "integer"
-                                        },
-                                        "limit": {
-                                            "type": "integer"
-                                        }
-                                    }
-                                },
                                 "data": {
                                     "type": "array",
                                     "items": {
                                         "$ref": "#/definitions/models.StorageResponse"
+                                    }
+                                },
+                                "meta": {
+                                    "type": "object",
+                                    "properties": {
+                                        "limit": {
+                                            "type": "integer"
+                                        },
+                                        "offset": {
+                                            "type": "integer"
+                                        },
+                                        "total": {
+                                            "type": "integer"
+                                        }
                                     }
                                 }
                             }

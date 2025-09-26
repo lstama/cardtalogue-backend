@@ -15,7 +15,7 @@ type CardService interface {
 	GetCardsProtected(limit, offset int) ([]*models.CardProtectedResponse, int64, error)
 	UpdateCard(id uint, req *models.UpdateCardRequest) (*models.CardResponse, error)
 	DeleteCard(id uint) error
-	SearchCards(game_id int, language_id int, pack_id int, query_string string, limit, offset int) ([]*models.CardResponse, error)
+	SearchCards(game_id int, language_id int, pack_id int, query_string string, limit, offset int) ([]*models.CardResponse, int64, error)
 }
 
 type cardService struct {
@@ -256,7 +256,7 @@ func (s *cardService) toCardProtectedResponse(card *models.Card) *models.CardPro
 	}
 }
 
-func (s *cardService) SearchCards(game_id int, language_id int, pack_id int, query_string string, limit, offset int) ([]*models.CardResponse, error) {
+func (s *cardService) SearchCards(game_id int, language_id int, pack_id int, query_string string, limit, offset int) ([]*models.CardResponse, int64, error) {
 	// Set default limit if not provided
 	if limit <= 0 {
 		limit = 20
@@ -265,9 +265,9 @@ func (s *cardService) SearchCards(game_id int, language_id int, pack_id int, que
 		limit = 100
 	}
 
-	cards, err := s.cardRepo.Search(game_id, language_id, pack_id, query_string, limit, offset)
+	cards, total, err := s.cardRepo.Search(game_id, language_id, pack_id, query_string, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	responses := make([]*models.CardResponse, len(cards))
@@ -275,5 +275,5 @@ func (s *cardService) SearchCards(game_id int, language_id int, pack_id int, que
 		responses[i] = s.toCardResponse(card)
 	}
 
-	return responses, nil
+	return responses, total, nil
 }

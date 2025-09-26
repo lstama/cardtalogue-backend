@@ -81,7 +81,7 @@ func (h *RarityHandler) GetRarity(c *gin.Context) {
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} object{data=[]models.RarityResponse, meta=object{total=int, limit=int, offset=int}}
+// @Success 200 {object} object{data=[]models.RarityResponse,meta=object{total=int,limit=int,offset=int}}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /rarities [get]
@@ -176,25 +176,28 @@ func (h *RarityHandler) DeleteRarity(c *gin.Context) {
 // @Tags Rarities
 // @Accept json
 // @Produce json
-// @Param query query string true "Search query"
+// @Param query query string false "Search query"
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} object{data=[]models.RarityResponse}
+// @Success 200 {object} object{data=[]models.RarityResponse,meta=object{total=int,limit=int,offset=int}}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /rarities/search [get]
 func (h *RarityHandler) SearchRarities(c *gin.Context) {
 	queryString := c.Query("query")
-	if queryString == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter is required"})
-		return
-	}
 	limit, _ := strconv.Atoi(c.Query("limit"))
 	offset, _ := strconv.Atoi(c.Query("offset"))
-	rarities, err := h.rarityService.SearchRarities(queryString, limit, offset)
+	rarities, total, err := h.rarityService.SearchRarities(queryString, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": rarities})
+	c.JSON(http.StatusOK, gin.H{
+		"data": rarities,
+		"meta": gin.H{
+			"total":  total,
+			"limit":  limit,
+			"offset": offset,
+		},
+	})
 }

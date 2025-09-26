@@ -13,7 +13,7 @@ type RarityService interface {
 	GetRarities(limit, offset int) ([]*models.RarityResponse, int64, error)
 	UpdateRarity(id uint, req *models.UpdateRarityRequest) (*models.RarityResponse, error)
 	DeleteRarity(id uint) error
-	SearchRarities(query_string string, limit, offset int) ([]*models.RarityResponse, error)
+	SearchRarities(query_string string, limit, offset int) ([]*models.RarityResponse, int64, error)
 }
 
 type rarityService struct {
@@ -48,7 +48,7 @@ func (s *rarityService) GetRarities(limit, offset int) ([]*models.RarityResponse
 		limit = 20
 	}
 	if limit > 100 {
-		limit = 100
+		limit = 10
 	}
 	rarities, err := s.rarityRepo.GetAll(limit, offset)
 	if err != nil {
@@ -99,7 +99,7 @@ func (s *rarityService) toRarityResponse(rarity *models.Rarity) *models.RarityRe
 	}
 }
 
-func (s *rarityService) SearchRarities(query_string string, limit, offset int) ([]*models.RarityResponse, error) {
+func (s *rarityService) SearchRarities(query_string string, limit, offset int) ([]*models.RarityResponse, int64, error) {
 	// Set default limit if not provided
 	if limit <= 0 {
 		limit = 20
@@ -107,13 +107,13 @@ func (s *rarityService) SearchRarities(query_string string, limit, offset int) (
 	if limit > 100 {
 		limit = 100
 	}
-	rarities, err := s.rarityRepo.Search(query_string, limit, offset)
+	rarities, total, err := s.rarityRepo.Search(query_string, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	responses := make([]*models.RarityResponse, len(rarities))
 	for i, rarity := range rarities {
 		responses[i] = s.toRarityResponse(rarity)
 	}
-	return responses, nil
+	return responses, total, nil
 }

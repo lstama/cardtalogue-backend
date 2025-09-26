@@ -117,7 +117,7 @@ func (h *CardHandler) GetCardProtected(c *gin.Context) {
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} object{data=[]models.CardResponse, meta=object{total=int, limit=int, offset=int}}
+// @Success 200 {object} object{data=[]models.CardResponse,meta=object{total=int,limit=int,offset=int}}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /cards [get]
@@ -149,7 +149,7 @@ func (h *CardHandler) GetCards(c *gin.Context) {
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} object{data=[]models.CardProtectedResponse, meta=object{total=int, limit=int, offset=int}}
+// @Success 200 {object} object{data=[]models.CardProtectedResponse,meta=object{total=int,limit=int,offset=int}}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /cards/protected [get]
@@ -257,7 +257,7 @@ func (h *CardHandler) DeleteCard(c *gin.Context) {
 // @Param query query string false "Search query"
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} object{data=[]models.CardResponse, meta=object{limit=int, offset=int}}
+// @Success 200 {object} object{data=[]models.CardResponse,meta=object{limit=int,offset=int,total=int}}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /cards/search [get]
@@ -270,7 +270,7 @@ func (h *CardHandler) SearchCards(c *gin.Context) {
 	pack_id, _ := strconv.Atoi(c.Query("pack_id"))
 	query_string := c.Query("query")
 
-	cards, err := h.cardService.SearchCards(game_id, language_id, pack_id, query_string, limit, offset)
+	cards, total, err := h.cardService.SearchCards(game_id, language_id, pack_id, query_string, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -281,6 +281,7 @@ func (h *CardHandler) SearchCards(c *gin.Context) {
 		"meta": gin.H{
 			"limit":  limit,
 			"offset": offset,
+			"total":  total,
 		},
 	})
 }

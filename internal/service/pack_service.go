@@ -13,7 +13,7 @@ type PackService interface {
 	GetPacks(limit, offset int) ([]*models.PackResponse, int64, error)
 	UpdatePack(id uint, req *models.UpdatePackRequest) (*models.PackResponse, error)
 	DeletePack(id uint) error
-	SearchPacks(game_id int, language_id int, query_string string, limit, offset int) ([]*models.PackResponse, error)
+	SearchPacks(game_id int, language_id int, query_string string, limit, offset int) ([]*models.PackResponse, int64, error)
 }
 
 type packService struct {
@@ -134,7 +134,7 @@ func (s *packService) toPackResponse(pack *models.Pack) *models.PackResponse {
 	}
 }
 
-func (s *packService) SearchPacks(game_id int, language_id int, query_string string, limit, offset int) ([]*models.PackResponse, error) {
+func (s *packService) SearchPacks(game_id int, language_id int, query_string string, limit, offset int) ([]*models.PackResponse, int64, error) {
 	// Set default limit if not provided
 	if limit <= 0 {
 		limit = 20
@@ -143,9 +143,9 @@ func (s *packService) SearchPacks(game_id int, language_id int, query_string str
 		limit = 100
 	}
 
-	packs, err := s.packRepo.Search(game_id, language_id, query_string, limit, offset)
+	packs, total, err := s.packRepo.Search(game_id, language_id, query_string, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	responses := make([]*models.PackResponse, len(packs))
@@ -153,5 +153,5 @@ func (s *packService) SearchPacks(game_id int, language_id int, query_string str
 		responses[i] = s.toPackResponse(pack)
 	}
 
-	return responses, nil
+	return responses, total, nil
 }

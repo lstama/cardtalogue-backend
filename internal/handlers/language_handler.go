@@ -81,7 +81,7 @@ func (h *LanguageHandler) GetLanguage(c *gin.Context) {
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} object{data=[]models.LanguageResponse, meta=object{total=int, limit=int, offset=int}}
+// @Success 200 {object} object{data=[]models.LanguageResponse,meta=object{total=int,limit=int,offset=int}}
 // @Failure 500 {object} map[string]string
 // @Router /languages [get]
 func (h *LanguageHandler) GetLanguages(c *gin.Context) {
@@ -175,25 +175,28 @@ func (h *LanguageHandler) DeleteLanguage(c *gin.Context) {
 // @Tags Languages
 // @Accept json
 // @Produce json
-// @Param query query string true "Search query"
+// @Param query query string false "Search query"
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} object{data=[]models.LanguageResponse}
+// @Success 200 {object} object{data=[]models.LanguageResponse,meta=object{total=int,limit=int,offset=int}}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /languages/search [get]
 func (h *LanguageHandler) SearchLanguages(c *gin.Context) {
 	query := c.Query("query")
-	if query == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "query parameter is required"})
-		return
-	}
 	limit, _ := strconv.Atoi(c.Query("limit"))
 	offset, _ := strconv.Atoi(c.Query("offset"))
-	languages, err := h.languageService.SearchLanguages(query, limit, offset)
+	languages, total, err := h.languageService.SearchLanguages(query, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": languages})
+	c.JSON(http.StatusOK, gin.H{
+		"data": languages,
+		"meta": gin.H{
+			"total":  total,
+			"limit":  limit,
+			"offset": offset,
+		},
+	})
 }

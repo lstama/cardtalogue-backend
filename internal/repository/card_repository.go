@@ -16,7 +16,7 @@ type CardRepository interface {
 	Update(card *models.Card) error
 	Delete(id uint) error
 	Count() (int64, error)
-	Search(game_id int, language_id int, pack_id int, query_string string, limit, offset int) ([]*models.Card, error)
+	Search(game_id int, language_id int, pack_id int, query_string string, limit, offset int) ([]*models.Card, int64, error)
 }
 
 type cardRepository struct {
@@ -76,28 +76,40 @@ func (r *cardRepository) Count() (int64, error) {
 	return count, nil
 }
 
-func (r *cardRepository) Search(game_id int, language_id int, pack_id int, query_string string, limit, offset int) ([]*models.Card, error) {
+func (r *cardRepository) Search(gameID, languageID, packID int, queryString string, limit, offset int) ([]*models.Card, int64, error) {
 	var cards []*models.Card
-	query := r.db.Preload("Game").Preload("Language").Preload("Pack").Limit(limit).Offset(offset).Order("created_at DESC")
+	var total int64
 
-	query_string = strings.ToLower(query_string)
+	// Base query (filters only, no preload, no limit/offset/order)
+	baseQuery := r.db.Model(&models.Card{})
 
-	if game_id > 0 {
-		query = query.Where("game_id = ?", game_id)
+	if gameID > 0 {
+		baseQuery = baseQuery.Where("game_id = ?", gameID)
 	}
-	if language_id > 0 {
-		query = query.Where("language_id = ?", language_id)
+	if languageID > 0 {
+		baseQuery = baseQuery.Where("language_id = ?", languageID)
 	}
-	if pack_id > 0 {
-		query = query.Where("pack_id = ?", pack_id)
+	if packID > 0 {
+		baseQuery = baseQuery.Where("pack_id = ?", packID)
 	}
-	if query_string != "" {
-		likeQuery := fmt.Sprintf("%%%s%%", query_string)
-		query = query.Where("lowercase_name LIKE ? OR lowercase_code LIKE ?", likeQuery, likeQuery)
+	if queryString != "" {
+		queryString = strings.ToLower(queryString)
+		likeQuery := fmt.Sprintf("%%%s%%", queryString)
+		baseQuery = baseQuery.Where("lowercase_name LIKE ? OR lowercase_code LIKE ?", likeQuery, likeQuery)
 	}
 
-	if err := query.Find(&cards).Error; err != nil {
-		return nil, fmt.Errorf("failed to search cards: %w", err)
+	// Count (on base query only)
+	if err := baseQuery.Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to count searched cards: %w", err)
 	}
-	return cards, nil
+
+	// Fetch data with preload + pagination + order
+	findQuery := baseQuery.Preload("Game").Preload("Language").Preload("Pack").
+		Limit(limit).Offset(offset).Order("created_at DESC")
+
+	if err := findQuery.Find(&cards).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to search cards: %w", err)
+	}
+
+	return cards, total, nil
 }

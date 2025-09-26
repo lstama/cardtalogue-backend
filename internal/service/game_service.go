@@ -13,7 +13,7 @@ type GameService interface {
 	GetGames(limit, offset int) ([]*models.GameResponse, int64, error)
 	UpdateGame(id uint, req *models.UpdateGameRequest) (*models.GameResponse, error)
 	DeleteGame(id uint) error
-	SearchGames(query_string string, limit, offset int) ([]*models.GameResponse, error)
+	SearchGames(query_string string, limit, offset int) ([]*models.GameResponse, int64, error)
 }
 
 type gameService struct {
@@ -94,20 +94,20 @@ func (s *gameService) toGameResponse(game *models.Game) *models.GameResponse {
 	}
 }
 
-func (s *gameService) SearchGames(query_string string, limit, offset int) ([]*models.GameResponse, error) {
+func (s *gameService) SearchGames(query_string string, limit, offset int) ([]*models.GameResponse, int64, error) {
 	if limit <= 0 {
 		limit = 20
 	}
 	if limit > 100 {
 		limit = 100
 	}
-	games, err := s.gameRepo.Search(query_string, limit, offset)
+	games, total, err := s.gameRepo.Search(query_string, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	responses := make([]*models.GameResponse, len(games))
 	for i, game := range games {
 		responses[i] = s.toGameResponse(game)
 	}
-	return responses, nil
+	return responses, total, nil
 }

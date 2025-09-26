@@ -15,7 +15,7 @@ type GameRepository interface {
 	Update(game *models.Game) error
 	Delete(id uint) error
 	Count() (int64, error)
-	Search(query_string string, limit, offset int) ([]*models.Game, error)
+	Search(query_string string, limit, offset int) ([]*models.Game, int64, error)
 }
 
 type gameRepository struct {
@@ -75,19 +75,22 @@ func (r *gameRepository) Count() (int64, error) {
 	return count, nil
 }
 
-func (r *gameRepository) Search(query_string string, limit, offset int) ([]*models.Game, error) {
+func (r *gameRepository) Search(query_string string, limit, offset int) ([]*models.Game, int64, error) {
 	var games []*models.Game
-	query := r.db.Limit(limit).Offset(offset).Order("created_at DESC")
-
-	query_string = strings.ToLower(query_string)
-
+	query := r.db.Model(&models.Game{})
 	if query_string != "" {
-		likeQuery := fmt.Sprintf("%%%s%%", query_string)
+		likeQuery := "%" + strings.ToLower(query_string) + "%"
 		query = query.Where("lowercase_name LIKE ?", likeQuery)
 	}
 
-	if err := query.Find(&games).Error; err != nil {
-		return nil, fmt.Errorf("failed to search cards: %w", err)
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to count games: %w", err)
 	}
-	return games, nil
+
+	if err := query.Limit(limit).Offset(offset).Order("created_at DESC").Find(&games).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to search games: %w", err)
+	}
+
+	return games, total, nil
 }

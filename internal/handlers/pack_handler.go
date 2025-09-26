@@ -85,7 +85,7 @@ func (h *PackHandler) GetPack(c *gin.Context) {
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} object{data=[]models.PackResponse, meta=object{total=int, limit=int, offset=int}}
+// @Success 200 {object} object{data=[]models.PackResponse,meta=object{total=int,limit=int,offset=int}}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /packs [get]
@@ -187,12 +187,12 @@ func (h *PackHandler) DeletePack(c *gin.Context) {
 // @Tags Packs
 // @Accept json
 // @Produce json
-// @Param game_id query int true "Game ID"
-// @Param language_id query int true "Language ID"
-// @Param query query string true "Search query"
+// @Param game_id query int false "Game ID"
+// @Param language_id query int false "Language ID"
+// @Param query query string false "Search query"
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
-// @Success 200 {object} object{data=[]models.PackResponse, meta=object{total=int, limit=int, offset=int}}
+// @Success 200 {object} object{data=[]models.PackResponse,meta=object{total=int,limit=int,offset=int}}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /packs/search [get]
@@ -203,7 +203,7 @@ func (h *PackHandler) SearchPacks(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.Query("limit"))
 	offset, _ := strconv.Atoi(c.Query("offset"))
 
-	packs, err := h.packService.SearchPacks(gameID, languageID, queryString, limit, offset)
+	packs, total, err := h.packService.SearchPacks(gameID, languageID, queryString, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -214,6 +214,7 @@ func (h *PackHandler) SearchPacks(c *gin.Context) {
 		"meta": gin.H{
 			"limit":  limit,
 			"offset": offset,
+			"total":  total,
 		},
 	})
 }

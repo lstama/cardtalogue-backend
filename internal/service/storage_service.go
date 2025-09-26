@@ -13,7 +13,7 @@ type StorageService interface {
 	GetStorages(limit, offset int) ([]*models.StorageResponse, int64, error)
 	UpdateStorage(id uint, req *models.UpdateStorageRequest) (*models.StorageResponse, error)
 	DeleteStorage(id uint) error
-	SearchStorages(query_string string, limit, offset int) ([]*models.StorageResponse, error)
+	SearchStorages(query_string string, limit, offset int) ([]*models.StorageResponse, int64, error)
 }
 
 type storageService struct {
@@ -100,20 +100,20 @@ func (s *storageService) toStorageResponse(storage *models.Storage) *models.Stor
 	}
 }
 
-func (s *storageService) SearchStorages(query_string string, limit, offset int) ([]*models.StorageResponse, error) {
+func (s *storageService) SearchStorages(query_string string, limit, offset int) ([]*models.StorageResponse, int64, error) {
 	if limit <= 0 {
 		limit = 20
 	}
 	if limit > 100 {
 		limit = 100
 	}
-	storages, err := s.storageRepo.Search(query_string, limit, offset)
+	storages, total, err := s.storageRepo.Search(query_string, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	responses := make([]*models.StorageResponse, len(storages))
 	for i, storage := range storages {
 		responses[i] = s.toStorageResponse(storage)
 	}
-	return responses, nil
+	return responses, total, nil
 }

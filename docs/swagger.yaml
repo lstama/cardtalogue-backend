@@ -654,19 +654,19 @@ paths:
           description: OK
           schema:
             properties:
-              ' meta':
-                properties:
-                  ' limit':
-                    type: integer
-                  ' offset':
-                    type: integer
-                  total:
-                    type: integer
-                type: object
               data:
                 items:
                   $ref: '#/definitions/models.CardResponse'
                 type: array
+              meta:
+                properties:
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total:
+                    type: integer
+                type: object
             type: object
         "400":
           description: Bad Request
@@ -866,19 +866,19 @@ paths:
           description: OK
           schema:
             properties:
-              ' meta':
-                properties:
-                  ' limit':
-                    type: integer
-                  ' offset':
-                    type: integer
-                  total:
-                    type: integer
-                type: object
               data:
                 items:
                   $ref: '#/definitions/models.CardProtectedResponse'
                 type: array
+              meta:
+                properties:
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total:
+                    type: integer
+                type: object
             type: object
         "400":
           description: Bad Request
@@ -971,17 +971,19 @@ paths:
           description: OK
           schema:
             properties:
-              ' meta':
-                properties:
-                  ' offset':
-                    type: integer
-                  limit:
-                    type: integer
-                type: object
               data:
                 items:
                   $ref: '#/definitions/models.CardResponse'
                 type: array
+              meta:
+                properties:
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total:
+                    type: integer
+                type: object
             type: object
         "400":
           description: Bad Request
@@ -1021,19 +1023,19 @@ paths:
           description: OK
           schema:
             properties:
-              ' meta':
-                properties:
-                  ' limit':
-                    type: integer
-                  ' offset':
-                    type: integer
-                  total:
-                    type: integer
-                type: object
               data:
                 items:
                   $ref: '#/definitions/models.GameResponse'
                 type: array
+              meta:
+                properties:
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total:
+                    type: integer
+                type: object
             type: object
         "400":
           description: Bad Request
@@ -1219,7 +1221,6 @@ paths:
       - description: Search query
         in: query
         name: query
-        required: true
         type: string
       - default: 10
         description: Limit
@@ -1242,6 +1243,15 @@ paths:
                 items:
                   $ref: '#/definitions/models.GameResponse'
                 type: array
+              meta:
+                properties:
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total:
+                    type: integer
+                type: object
             type: object
         "400":
           description: Bad Request
@@ -1281,19 +1291,19 @@ paths:
           description: OK
           schema:
             properties:
-              ' meta':
-                properties:
-                  ' limit':
-                    type: integer
-                  ' offset':
-                    type: integer
-                  total:
-                    type: integer
-                type: object
               data:
                 items:
                   $ref: '#/definitions/models.LanguageResponse'
                 type: array
+              meta:
+                properties:
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total:
+                    type: integer
+                type: object
             type: object
         "500":
           description: Internal Server Error
@@ -1473,7 +1483,6 @@ paths:
       - description: Search query
         in: query
         name: query
-        required: true
         type: string
       - default: 10
         description: Limit
@@ -1496,6 +1505,15 @@ paths:
                 items:
                   $ref: '#/definitions/models.LanguageResponse'
                 type: array
+              meta:
+                properties:
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total:
+                    type: integer
+                type: object
             type: object
         "400":
           description: Bad Request
@@ -1535,19 +1553,19 @@ paths:
           description: OK
           schema:
             properties:
-              ' meta':
-                properties:
-                  ' limit':
-                    type: integer
-                  ' offset':
-                    type: integer
-                  total:
-                    type: integer
-                type: object
               data:
                 items:
                   $ref: '#/definitions/models.PackResponse'
                 type: array
+              meta:
+                properties:
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total:
+                    type: integer
+                type: object
             type: object
         "400":
           description: Bad Request
@@ -1734,17 +1752,14 @@ paths:
       - description: Game ID
         in: query
         name: game_id
-        required: true
         type: integer
       - description: Language ID
         in: query
         name: language_id
-        required: true
         type: integer
       - description: Search query
         in: query
         name: query
-        required: true
         type: string
       - default: 10
         description: Limit
@@ -1763,19 +1778,19 @@ paths:
           description: OK
           schema:
             properties:
-              ' meta':
-                properties:
-                  ' limit':
-                    type: integer
-                  ' offset':
-                    type: integer
-                  total:
-                    type: integer
-                type: object
               data:
                 items:
                   $ref: '#/definitions/models.PackResponse'
                 type: array
+              meta:
+                properties:
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total:
+                    type: integer
+                type: object
             type: object
         "400":
           description: Bad Request
@@ -1880,19 +1895,19 @@ paths:
           description: OK
           schema:
             properties:
-              ' meta':
-                properties:
-                  ' limit':
-                    type: integer
-                  ' offset':
-                    type: integer
-                  total:
-                    type: integer
-                type: object
               data:
                 items:
                   $ref: '#/definitions/models.RarityResponse'
                 type: array
+              meta:
+                properties:
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total:
+                    type: integer
+                type: object
             type: object
         "400":
           description: Bad Request
@@ -2078,7 +2093,6 @@ paths:
       - description: Search query
         in: query
         name: query
-        required: true
         type: string
       - default: 10
         description: Limit
@@ -2101,6 +2115,15 @@ paths:
                 items:
                   $ref: '#/definitions/models.RarityResponse'
                 type: array
+              meta:
+                properties:
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total:
+                    type: integer
+                type: object
             type: object
         "400":
           description: Bad Request
@@ -2140,19 +2163,19 @@ paths:
           description: OK
           schema:
             properties:
-              ' meta':
-                properties:
-                  ' limit':
-                    type: integer
-                  ' offset':
-                    type: integer
-                  total:
-                    type: integer
-                type: object
               data:
                 items:
                   $ref: '#/definitions/models.StorageResponse'
                 type: array
+              meta:
+                properties:
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total:
+                    type: integer
+                type: object
             type: object
         "500":
           description: Internal Server Error
@@ -2351,17 +2374,19 @@ paths:
           description: OK
           schema:
             properties:
-              ' meta':
-                properties:
-                  ' offset':
-                    type: integer
-                  limit:
-                    type: integer
-                type: object
               data:
                 items:
                   $ref: '#/definitions/models.StorageResponse'
                 type: array
+              meta:
+                properties:
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  total:
+                    type: integer
+                type: object
             type: object
         "500":
           description: Internal Server Error

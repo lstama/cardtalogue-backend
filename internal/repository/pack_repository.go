@@ -16,7 +16,7 @@ type PackRepository interface {
 	Update(pack *models.Pack) error
 	Delete(id uint) error
 	Count() (int64, error)
-	Search(game_id int, language_id int, query_string string, limit, offset int) ([]*models.Pack, error)
+	Search(game_id int, language_id int, query_string string, limit, offset int) ([]*models.Pack, int64, error)
 }
 
 type packRepository struct {
@@ -76,12 +76,9 @@ func (r *packRepository) Count() (int64, error) {
 	return count, nil
 }
 
-func (r *packRepository) Search(game_id int, language_id int, query_string string, limit, offset int) ([]*models.Pack, error) {
+func (r *packRepository) Search(game_id int, language_id int, query_string string, limit, offset int) ([]*models.Pack, int64, error) {
 	var packs []*models.Pack
-	query := r.db.Preload("Game").Preload("Language").Limit(limit).Offset(offset).Order("created_at DESC")
-
-	query_string = strings.ToLower(query_string)
-
+	query := r.db.Model(&models.Pack{})
 	if game_id > 0 {
 		query = query.Where("game_id = ?", game_id)
 	}
@@ -89,12 +86,15 @@ func (r *packRepository) Search(game_id int, language_id int, query_string strin
 		query = query.Where("language_id = ?", language_id)
 	}
 	if query_string != "" {
-		likeQuery := fmt.Sprintf("%%%s%%", query_string)
+		likeQuery := "%" + strings.ToLower(query_string) + "%"
 		query = query.Where("lowercase_name LIKE ? OR lowercase_code LIKE ?", likeQuery, likeQuery)
 	}
-
-	if err := query.Find(&packs).Error; err != nil {
-		return nil, fmt.Errorf("failed to search cards: %w", err)
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to count packs: %w", err)
 	}
-	return packs, nil
+	if err := query.Preload("Game").Preload("Language").Limit(limit).Offset(offset).Order("created_at DESC").Find(&packs).Error; err != nil {
+		return nil, 0, fmt.Errorf("failed to search packs: %w", err)
+	}
+	return packs, total, nil
 }
