@@ -104,7 +104,7 @@ func (r *cardRepository) Search(gameID, languageID, packID int, queryString stri
 	}
 
 	// Fetch data with preload + pagination + order
-	findQuery := baseQuery.Preload("Game").Preload("Language").Preload("Pack").
+	findQuery := baseQuery.Preload("Game").Preload("Language").Preload("Pack").Preload("Rarity").Preload("Storage").
 		Limit(limit).Offset(offset).Order("created_at DESC")
 
 	if err := findQuery.Find(&cards).Error; err != nil {

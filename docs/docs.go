@@ -104,8 +104,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": true
+                            "$ref": "#/definitions/models.RefreshTokenResponse"
                         }
                     },
                     "400": {
@@ -208,6 +207,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new card with the provided details",
                 "consumes": [
                     "application/json"
@@ -265,6 +269,11 @@ const docTemplate = `{
         },
         "/cards/protected": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a list of cards with protected data and pagination",
                 "consumes": [
                     "application/json"
@@ -344,6 +353,11 @@ const docTemplate = `{
         },
         "/cards/protected/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a card by its ID, including protected data",
                 "consumes": [
                     "application/json"
@@ -555,6 +569,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update a card's details by its ID",
                 "consumes": [
                     "application/json"
@@ -626,6 +645,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete a card by its ID",
                 "consumes": [
                     "application/json"
@@ -767,6 +791,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new game with the provided details",
                 "consumes": [
                     "application/json"
@@ -962,6 +991,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update a game's details by its ID",
                 "consumes": [
                     "application/json"
@@ -1033,6 +1067,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete a game by its ID",
                 "consumes": [
                     "application/json"
@@ -1165,6 +1204,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new language with the provided details",
                 "consumes": [
                     "application/json"
@@ -1360,6 +1404,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update the details of an existing language by its ID",
                 "consumes": [
                     "application/json"
@@ -1431,6 +1480,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete an existing language by its ID",
                 "consumes": [
                     "application/json"
@@ -1572,6 +1626,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new pack with the provided details",
                 "consumes": [
                     "application/json"
@@ -1779,6 +1838,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update the details of an existing pack",
                 "consumes": [
                     "application/json"
@@ -1850,6 +1914,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete a pack by its ID",
                 "consumes": [
                     "application/json"
@@ -2094,6 +2163,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new rarity with the provided details",
                 "consumes": [
                     "application/json"
@@ -2289,6 +2363,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update an existing rarity by its ID",
                 "consumes": [
                     "application/json"
@@ -2360,6 +2439,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete an existing rarity by its ID",
                 "consumes": [
                     "application/json"
@@ -2424,6 +2508,11 @@ const docTemplate = `{
         },
         "/storages": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a list of storages with pagination",
                 "consumes": [
                     "application/json"
@@ -2492,6 +2581,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new storage with the provided details",
                 "consumes": [
                     "application/json"
@@ -2549,6 +2643,11 @@ const docTemplate = `{
         },
         "/storages/search": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Search for storages based on a query string with pagination",
                 "consumes": [
                     "application/json"
@@ -2626,6 +2725,11 @@ const docTemplate = `{
         },
         "/storages/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a storage by its ID",
                 "consumes": [
                     "application/json"
@@ -2679,6 +2783,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update an existing storage with the provided details",
                 "consumes": [
                     "application/json"
@@ -2750,6 +2859,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete an existing storage by its ID",
                 "consumes": [
                     "application/json"
@@ -2814,6 +2928,11 @@ const docTemplate = `{
         },
         "/users": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a list of users with pagination",
                 "consumes": [
                     "application/json"
@@ -2891,6 +3010,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Create a new user with the provided details",
                 "consumes": [
                     "application/json"
@@ -2957,6 +3081,11 @@ const docTemplate = `{
         },
         "/users/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Retrieve a user by its ID",
                 "consumes": [
                     "application/json"
@@ -3010,6 +3139,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Update a user's details by its ID",
                 "consumes": [
                     "application/json"
@@ -3090,6 +3224,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Delete a user by its ID",
                 "consumes": [
                     "application/json"
@@ -3688,6 +3827,14 @@ const docTemplate = `{
             ],
             "properties": {
                 "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RefreshTokenResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
                     "type": "string"
                 }
             }

@@ -25,6 +25,7 @@ func NewLanguageHandler(languageService service.LanguageService) *LanguageHandle
 // @Accept json
 // @Produce json
 // @Param request body models.CreateLanguageRequest true "Language details"
+// @Security BearerAuth
 // @Success 201 {object} object{data=models.LanguageResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -110,6 +111,7 @@ func (h *LanguageHandler) GetLanguages(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Language ID"
 // @Param request body models.UpdateLanguageRequest true "Updated language details"
+// @Security BearerAuth
 // @Success 200 {object} object{data=models.LanguageResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -147,6 +149,7 @@ func (h *LanguageHandler) UpdateLanguage(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Language ID"
 // @Success 200 {object} object{message=string}
+// @Security BearerAuth
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string

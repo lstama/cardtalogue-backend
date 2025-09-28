@@ -54,8 +54,17 @@ type LoginResponse struct {
 	RefreshToken string       `json:"refresh_token"`
 }
 
+// type LoginResponseNoToken struct {
+// 	User          UserResponse `json:"user"`
+// 	Authenticated bool         `json:"authenticated"`
+// }
+
 type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
+type RefreshTokenResponse struct {
+	AccessToken string `json:"access_token"`
 }
 
 type ChangePasswordRequest struct {

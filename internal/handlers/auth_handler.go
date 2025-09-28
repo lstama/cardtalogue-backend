@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/lstama/cardtalogue-backend/internal/config"
 	"github.com/lstama/cardtalogue-backend/internal/models"
 	"github.com/lstama/cardtalogue-backend/internal/service"
 
@@ -11,10 +12,11 @@ import (
 
 type AuthHandler struct {
 	authService service.AuthService
+	cfg         *config.Config
 }
 
-func NewAuthHandler(authService service.AuthService) *AuthHandler {
-	return &AuthHandler{authService: authService}
+func NewAuthHandler(authService service.AuthService, cfg *config.Config) *AuthHandler {
+	return &AuthHandler{authService: authService, cfg: cfg}
 }
 
 // Login godoc
@@ -40,7 +42,6 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }
 
@@ -51,7 +52,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body models.RefreshTokenRequest true "Refresh token"
-// @Success 200 {object} map[string]interface{}
+// @Success 200 {object} models.RefreshTokenResponse
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Router /auth/refresh [post]
@@ -62,13 +63,13 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	token, err := h.authService.RefreshToken(req.RefreshToken)
+	response, err := h.authService.RefreshToken(req.RefreshToken)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": gin.H{"access_token": token}})
+	c.JSON(http.StatusOK, gin.H{"data": response})
 }
 
 // GetProfile godoc

@@ -25,6 +25,7 @@ func NewGameHandler(gameService service.GameService) *GameHandler {
 // @Accept json
 // @Produce json
 // @Param request body models.CreateGameRequest true "Game details"
+// @Security BearerAuth
 // @Success 201 {object} object{data=models.GameResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -111,6 +112,7 @@ func (h *GameHandler) GetGames(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Game ID"
 // @Param request body models.UpdateGameRequest true "Updated game details"
+// @Security BearerAuth
 // @Success 200 {object} object{data=models.GameResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -147,6 +149,7 @@ func (h *GameHandler) UpdateGame(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Game ID"
+// @Security BearerAuth
 // @Success 200 {object} object{message=string}
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string

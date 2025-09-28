@@ -25,6 +25,7 @@ func NewRarityHandler(rarityService service.RarityService) *RarityHandler {
 // @Accept json
 // @Produce json
 // @Param request body models.CreateRarityRequest true "Rarity details"
+// @Security BearerAuth
 // @Success 201 {object} object{data=models.RarityResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -111,6 +112,7 @@ func (h *RarityHandler) GetRarities(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Rarity ID"
 // @Param request body models.UpdateRarityRequest true "Updated rarity details"
+// @Security BearerAuth
 // @Success 200 {object} object{data=models.RarityResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -147,6 +149,7 @@ func (h *RarityHandler) UpdateRarity(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Rarity ID"
+// @Security BearerAuth
 // @Success 200 {object} object{message=string}
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string

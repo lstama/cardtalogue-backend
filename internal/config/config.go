@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -13,11 +14,24 @@ type Config struct {
 	JWTSecret            string
 	DefaultAdminEmail    string
 	DefaultAdminPassword string
+	CommonHost           string
+	FrontendHosts        []string
+	Secure               bool
 }
 
 func Load() *Config {
 	// Load .env file if it exists
 	_ = godotenv.Load()
+
+	frontendHosts := strings.Split(getEnv("FRONTEND_HOSTS", "http://localhost:3000,http://127.0.0.1:3000"), ",")
+
+	environment := getEnv("ENVIRONMENT", "development")
+	var sec bool
+	if environment == "production" {
+		sec = true
+	} else {
+		sec = false
+	}
 
 	return &Config{
 		DatabaseURL:          getEnv("DATABASE_URL", "postgres://user:password@localhost/dbname?sslmode=disable"),
@@ -26,6 +40,9 @@ func Load() *Config {
 		JWTSecret:            getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-this-in-production"),
 		DefaultAdminEmail:    getEnv("DEFAULT_ADMIN_EMAIL", "admin@example.com"),
 		DefaultAdminPassword: getEnv("DEFAULT_ADMIN_PASSWORD", "admin123"),
+		CommonHost:           getEnv("COMMON_HOST", "localhost"),
+		FrontendHosts:        frontendHosts,
+		Secure:               sec,
 	}
 }
 

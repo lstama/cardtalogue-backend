@@ -375,6 +375,11 @@ definitions:
     required:
     - refresh_token
     type: object
+  models.RefreshTokenResponse:
+    properties:
+      access_token:
+        type: string
+    type: object
   models.StorageResponse:
     properties:
       code:
@@ -614,8 +619,7 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/models.RefreshTokenResponse'
         "400":
           description: Bad Request
           schema:
@@ -716,6 +720,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Create a new card
       tags:
       - Cards
@@ -758,6 +764,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Delete card by ID
       tags:
       - Cards
@@ -840,6 +848,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Update card by ID
       tags:
       - Cards
@@ -892,6 +902,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get list of cards, with protected data that isn't available to public
       tags:
       - Cards
@@ -928,6 +940,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get card by ID, with protected data that isn't available to public
       tags:
       - Cards
@@ -1085,6 +1099,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Create a new game
       tags:
       - Games
@@ -1127,6 +1143,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Delete game by ID
       tags:
       - Games
@@ -1209,6 +1227,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Update game by ID
       tags:
       - Games
@@ -1347,6 +1367,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Create a new language
       tags:
       - Languages
@@ -1389,6 +1411,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Delete a language
       tags:
       - Languages
@@ -1471,6 +1495,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Update a language
       tags:
       - Languages
@@ -1615,6 +1641,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Create a new pack
       tags:
       - Packs
@@ -1657,6 +1685,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Delete a pack
       tags:
       - Packs
@@ -1739,6 +1769,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Update a pack
       tags:
       - Packs
@@ -1957,6 +1989,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Create a new rarity
       tags:
       - Rarities
@@ -1999,6 +2033,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Delete a rarity
       tags:
       - Rarities
@@ -2081,6 +2117,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Update a rarity
       tags:
       - Rarities
@@ -2183,6 +2221,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get list of storages
       tags:
       - Storages
@@ -2219,6 +2259,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Create a new storage
       tags:
       - Storages
@@ -2261,6 +2303,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Delete storage by ID
       tags:
       - Storages
@@ -2296,6 +2340,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get storage by ID
       tags:
       - Storages
@@ -2343,6 +2389,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Update storage by ID
       tags:
       - Storages
@@ -2394,6 +2442,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Search storages
       tags:
       - Storages
@@ -2446,6 +2496,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get list of users
       tags:
       - Users
@@ -2488,6 +2540,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Create a new user
       tags:
       - Users
@@ -2530,6 +2584,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Delete user by ID
       tags:
       - Users
@@ -2565,6 +2621,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Get user by ID
       tags:
       - Users
@@ -2618,6 +2676,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: Update user by ID
       tags:
       - Users

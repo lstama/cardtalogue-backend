@@ -20,6 +20,7 @@ func NewCardHandler(cardService service.CardService) *CardHandler {
 
 // CreateCard godoc
 // @Summary Create a new card
+// @Security BearerAuth
 // @Description Create a new card with the provided details
 // @Tags Cards
 // @Accept json
@@ -80,6 +81,7 @@ func (h *CardHandler) GetCard(c *gin.Context) {
 // GetCardProtected godoc
 // @Summary Get card by ID, with protected data that isn't available to public
 // @Description Retrieve a card by its ID, including protected data
+// @Security BearerAuth
 // @Tags Cards
 // @Accept json
 // @Produce json
@@ -144,6 +146,7 @@ func (h *CardHandler) GetCards(c *gin.Context) {
 // GetCardsProtected godoc
 // @Summary Get list of cards, with protected data that isn't available to public
 // @Description Retrieve a list of cards with protected data and pagination
+// @Security BearerAuth
 // @Tags Cards
 // @Accept json
 // @Produce json
@@ -181,6 +184,7 @@ func (h *CardHandler) GetCardsProtected(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Card ID"
 // @Param request body models.UpdateCardRequest true "Updated card details"
+// @Security BearerAuth
 // @Success 200 {object} object{data=models.CardResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -220,6 +224,7 @@ func (h *CardHandler) UpdateCard(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Card ID"
+// @Security BearerAuth
 // @Success 200 {object} object{message=string}
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string

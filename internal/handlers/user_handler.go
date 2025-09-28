@@ -25,6 +25,7 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 // @Accept json
 // @Produce json
 // @Param request body models.CreateUserRequest true "User details"
+// @Security BearerAuth
 // @Success 201 {object} object{data=models.UserResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 409 {object} map[string]string
@@ -57,6 +58,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "User ID"
+// @Security BearerAuth
 // @Success 200 {object} object{data=models.UserResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -90,6 +92,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 // @Produce json
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
+// @Security BearerAuth
 // @Success 200 {object} object{data=[]models.UserResponse, meta=object{total=int, limit=int, offset=int}}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -122,6 +125,7 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 // @Produce json
 // @Param id path int true "User ID"
 // @Param request body models.UpdateUserRequest true "Updated user details"
+// @Security BearerAuth
 // @Success 200 {object} object{data=models.UserResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -166,6 +170,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "User ID"
+// @Security BearerAuth
 // @Success 200 {object} object{message=string}
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string

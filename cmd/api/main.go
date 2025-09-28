@@ -80,7 +80,7 @@ func main() {
 	storageService := service.NewStorageService(storageRepo)
 
 	// Initialize handlers
-	authHandler := handlers.NewAuthHandler(authService)
+	authHandler := handlers.NewAuthHandler(authService, cfg)
 	userHandler := handlers.NewUserHandler(userService)
 	cardHandler := handlers.NewCardHandler(cardService)
 	gameHandler := handlers.NewGameHandler(gameService)
@@ -100,6 +100,7 @@ func main() {
 		rarityHandler,
 		storageHandler,
 		cfg.JWTSecret,
+		cfg.FrontendHosts,
 	)
 
 	// Start server
@@ -117,13 +118,13 @@ func setupRouter(
 	rarityHandler *handlers.RarityHandler,
 	storageHandler *handlers.StorageHandler,
 	jwtSecret string,
+	frontendHosts []string,
 ) *gin.Engine {
 	router := gin.Default()
 
 	// CORS configuration
 	router.Use(cors.New(cors.Config{
-		// AllowOrigins:     []string{"*"},
-		AllowAllOrigins:  true,
+		AllowOrigins:     frontendHosts,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -243,7 +244,7 @@ func setupRouter(
 			}
 
 			// Storage management
-			storages := protected.Group("/storage")
+			storages := protected.Group("/storages")
 			{
 				// Storage management is only open to authenticated users
 				storages.GET("", storageHandler.GetStorages)

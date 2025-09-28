@@ -25,6 +25,7 @@ func NewPackHandler(packService service.PackService) *PackHandler {
 // @Accept json
 // @Produce json
 // @Param request body models.CreatePackRequest true "Pack details"
+// @Security BearerAuth
 // @Success 201 {object} object{data=models.PackResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -117,6 +118,7 @@ func (h *PackHandler) GetPacks(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Pack ID"
 // @Param request body models.UpdatePackRequest true "Updated pack details"
+// @Security BearerAuth
 // @Success 200 {object} object{data=models.PackResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -157,6 +159,7 @@ func (h *PackHandler) UpdatePack(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Pack ID"
 // @Success 200 {object} object{message=string}
+// @Security BearerAuth
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string

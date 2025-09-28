@@ -1,4 +1,4 @@
-.PHONY: build run test clean migrate migrate-up migrate-down migrate-create migrate-version help
+.PHONY: build run test clean migrate migrate-up migrate-down migrate-create migrate-version help delete-db up-db
 
 # Variables
 BINARY_NAME=cardtalogue-backend
@@ -94,3 +94,13 @@ lint: ## Run linter
 install: ## Install the binary
 	@echo "Installing..."
 	@go install cmd/api/main.go
+
+fill-sample:
+	@PGPASSWORD=password psql -h localhost -U user -d dbname -a -f sample-data/initialize.sql
+
+delete-db:
+	@podman ps --format "{{.ID}}" --filter "name=postgres" | xargs podman rm -f
+	@podman volume rm -f cardtalogue-backend_postgres_data
+
+up-db:
+	@podman-compose up -d postgres

@@ -25,6 +25,7 @@ func NewStorageHandler(storageService service.StorageService) *StorageHandler {
 // @Accept json
 // @Produce json
 // @Param request body models.CreateStorageRequest true "Storage details"
+// @Security BearerAuth
 // @Success 201 {object} object{data=models.StorageResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
@@ -50,6 +51,7 @@ func (h *StorageHandler) CreateStorage(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Storage ID"
+// @Security BearerAuth
 // @Success 200 {object} object{data=models.StorageResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -79,6 +81,7 @@ func (h *StorageHandler) GetStorage(c *gin.Context) {
 // @Tags Storages
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
 // @Success 200 {object} object{data=[]models.StorageResponse,meta=object{total=int,limit=int,offset=int}}
@@ -110,6 +113,7 @@ func (h *StorageHandler) GetStorages(c *gin.Context) {
 // @Produce json
 // @Param id path int true "Storage ID"
 // @Param request body models.UpdateStorageRequest true "Updated storage details"
+// @Security BearerAuth
 // @Success 200 {object} object{data=models.StorageResponse}
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -146,6 +150,7 @@ func (h *StorageHandler) UpdateStorage(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "Storage ID"
+// @Security BearerAuth
 // @Success 200 {object} object{message=string}
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -178,6 +183,7 @@ func (h *StorageHandler) DeleteStorage(c *gin.Context) {
 // @Param query_string query string true "Query string"
 // @Param limit query int false "Limit" default(10)
 // @Param offset query int false "Offset" default(0)
+// @Security BearerAuth
 // @Success 200 {object} object{data=[]models.StorageResponse,meta=object{total=int,limit=int,offset=int}}
 // @Failure 500 {object} map[string]string
 // @Router /storages/search [get]
