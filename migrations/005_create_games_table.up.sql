@@ -12,6 +12,5 @@ INSERT INTO games (name) VALUES
     ('Pokémon'),
     ('Digimon'),
     ('Cardfight!! Vanguard'),
-    ('Weiß Schwarz'),
-    ('Flesh and Blood TCG')
+    ('Weiß Schwarz')
 ON CONFLICT (name) DO NOTHING;

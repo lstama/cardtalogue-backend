@@ -1,12 +1,7 @@
--- storages
-INSERT INTO storages
-(code, "name", description, created_at, updated_at, lowercase_name, lowercase_code)
-VALUES('DF', 'Default', 'Default', '2025-09-28 08:57:38.030', '2025-09-28 08:57:38.030', 'default', 'df');
-
 -- packs
 INSERT INTO packs
 (code, "name", image_url, description, game_id, language_id, created_at, updated_at, lowercase_name, lowercase_code)
-VALUES('TAMA', 'Tactical Master', 'https://static.wikia.nocookie.net/yugioh/images/0/0a/TAMA-BoosterEN.png', 'Runick, Labrynth, Vaylantz', 1, 1, '2025-09-28 07:05:44.834', '2025-09-28 07:05:44.834', 'tactical master', 'tama');
+VALUES('TAMA', 'Tactical Master', 'https://static.wikia.nocookie.net/yugioh/images/0/0a/TAMA-BoosterEN.png', 'Runick, Labrynth, Vaylantz', 1, 2, '2025-09-28 07:05:44.834', '2025-09-28 07:05:44.834', 'tactical master', 'tama');
 INSERT INTO packs
 (code, "name", image_url, description, game_id, language_id, created_at, updated_at, lowercase_name, lowercase_code)
 VALUES('LEDE', 'Legacy of Destruction', 'https://static.wikia.nocookie.net/yugioh/images/8/87/LEDE-BoosterJP.png', 'Ragnaraika, Tenpai', 1, 1, '2025-09-28 07:05:44.834', '2025-09-28 07:05:44.834', 'legacy of destruction', 'lede');

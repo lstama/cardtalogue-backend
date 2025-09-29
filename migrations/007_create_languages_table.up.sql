@@ -10,5 +10,6 @@ CREATE TABLE languages (
 INSERT INTO languages (code, name) VALUES 
     ('JP','Japanese'),
     ('EN','English'),
-    ('AE','Asian English')
+    ('AE','Asian English'),
+    ('ID', 'Bahasa Indonesia')
 ON CONFLICT (code) DO NOTHING;

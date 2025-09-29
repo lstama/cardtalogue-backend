@@ -1,23 +1,41 @@
 
 CREATE TABLE rarities (
     id SERIAL PRIMARY KEY,
-    code VARCHAR(255) NOT NULL UNIQUE,
-    name VARCHAR(255) NOT NULL UNIQUE,
+    code VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 INSERT INTO rarities (code, name) VALUES 
     ('N','Normal'),
-    ('SR','Super Rare'),
-    ('R','Rare'),
-    ('UR','Ultra Rare'),
-    ('UL','Ultimate Rare'),
+    ('NP', 'Normal Parallel'),
     ('C','Common'),
     ('U','Uncommon'),
+    ('UC','Uncommon'),
+    ('CC','Climax Common'),
+    ('R','Rare'),
+    ('RR','Double Rare'),
+    ('RRR','Triple Rare'),
+    ('CR', 'Climax Rare'),
+    ('SR','Super Rare'),
+    ('SP','Special Rare'),
+    ('SP','Special'),
+    ('M', 'Mythic Rare'),
+    ('UR','Ultra Rare'),
+    ('UL','Ultimate Rare'),
     ('SCR','Secret Rare'),
-    ('L','Legendary')
-ON CONFLICT (code) DO NOTHING;
+    ('SE','Secret Rare'),
+    ('SEC','Secret Rare'),
+    ('PSCR','Prismatic Secret Rare'),
+    ('PSE','Prismatic Secret Rare'),
+    ('QCSR','Quarter Century Secret Rare'),
+    ('QCSE','Quarter Century Secret Rare'),
+    ('L','Legendary'),
+    ('L', 'Leader'),
+    ('TD', 'Trial Deck'),
+    ('P', 'Promo'),
+    ('PR', 'Promo');
 
 -- Add rarity_id column to cards table
 ALTER TABLE cards ADD COLUMN rarity_id INTEGER;
