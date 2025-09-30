@@ -8,7 +8,8 @@ CREATE TABLE packs (
     game_id INTEGER NOT NULL,
     language_id INTEGER NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT uniquePacks UNIQUE (code, game_id, language_id)
 );
 
 -- Add foreign key constraints

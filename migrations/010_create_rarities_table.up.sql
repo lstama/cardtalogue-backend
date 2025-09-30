@@ -4,7 +4,8 @@ CREATE TABLE rarities (
     code VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT uniqueRarities UNIQUE (code, name)
 );
 
 INSERT INTO rarities (code, name) VALUES 
@@ -46,3 +47,6 @@ ALTER TABLE cards ALTER COLUMN rarity_id SET NOT NULL;
 ALTER TABLE cards ADD CONSTRAINT fk_cards_rarity_id FOREIGN KEY (rarity_id) REFERENCES rarities(id);
 -- Add index for better performance
 CREATE INDEX idx_cards_rarity_id ON cards(rarity_id);
+
+-- Add unique constraint for card
+ALTER TABLE cards ADD CONSTRAINT uniqueCard UNIQUE (code, name, pack_id, rarity_id);
