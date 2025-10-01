@@ -16,6 +16,10 @@ build: ## Build the application
 	@echo "Building..."
 	@go build -o bin/$(BINARY_NAME) cmd/api/main.go
 
+build-migrate: ## Build the application
+	@echo "Building..."
+	@go build -o bin/migrate cmd/migrate/main.go
+
 run: ## Run the application
 	@echo "Running application..."
 	@go run cmd/api/main.go

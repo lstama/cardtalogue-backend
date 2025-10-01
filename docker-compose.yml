@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15
+    image: docker.io/postgres:15
     environment:
       POSTGRES_DB: dbname
       POSTGRES_USER: user
