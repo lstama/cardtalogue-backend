@@ -5,6 +5,8 @@ import (
 
 	"github.com/lstama/cardtalogue-backend/internal/models"
 	"github.com/lstama/cardtalogue-backend/internal/repository"
+
+	"github.com/lstama/cardtalogue-backend/internal/utils"
 )
 
 type PackService interface {
@@ -28,12 +30,14 @@ func (s *packService) CreatePack(req *models.CreatePackRequest) (*models.PackRes
 	// Set default status if not provided
 
 	pack := &models.Pack{
-		Code:        req.Code,
-		Name:        req.Name,
-		ImageURL:    req.ImageURL,
-		Description: req.Description,
-		GameID:      req.GameID,
-		LanguageID:  req.LanguageID,
+		Code:          req.Code,
+		Name:          req.Name,
+		ImageURL:      req.ImageURL,
+		Description:   req.Description,
+		GameID:        req.GameID,
+		LanguageID:    req.LanguageID,
+		LowercaseCode: utils.Normalize(req.Code),
+		LowercaseName: utils.Normalize(req.Name),
 	}
 
 	if err := s.packRepo.Create(pack); err != nil {

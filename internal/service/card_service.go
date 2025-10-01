@@ -5,6 +5,7 @@ import (
 
 	"github.com/lstama/cardtalogue-backend/internal/models"
 	"github.com/lstama/cardtalogue-backend/internal/repository"
+	"github.com/lstama/cardtalogue-backend/internal/utils"
 )
 
 type CardService interface {
@@ -51,6 +52,8 @@ func (s *cardService) CreateCard(req *models.CreateCardRequest) (*models.CardRes
 		PackID:          req.PackID,
 		RarityID:        req.RarityID,
 		StorageID:       req.StorageID,
+		LowercaseCode:   utils.Normalize(req.Code),
+		LowercaseName:   utils.Normalize(req.Name),
 	}
 
 	if err := s.cardRepo.Create(card); err != nil {
