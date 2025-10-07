@@ -142,9 +142,11 @@ func (s *cardService) UpdateCard(id uint, req *models.UpdateCardRequest) (*model
 	// Update fields if provided
 	if req.Code != nil {
 		card.Code = *req.Code
+		card.LowercaseCode = utils.Normalize(card.Code)
 	}
 	if req.Name != nil {
 		card.Name = *req.Name
+		card.LowercaseName = utils.Normalize(card.Name)
 	}
 	if req.Price != nil {
 		card.Price = *req.Price

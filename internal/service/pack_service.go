@@ -91,9 +91,11 @@ func (s *packService) UpdatePack(id uint, req *models.UpdatePackRequest) (*model
 	// Update fields if provided
 	if req.Code != nil {
 		pack.Code = *req.Code
+		pack.LowercaseCode = utils.Normalize(pack.Code)
 	}
 	if req.Name != nil {
 		pack.Name = *req.Name
+		pack.LowercaseName = utils.Normalize(pack.Name)
 	}
 	if req.ImageURL != nil {
 		pack.ImageURL = *req.ImageURL
