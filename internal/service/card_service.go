@@ -20,11 +20,12 @@ type CardService interface {
 }
 
 type cardService struct {
-	cardRepo repository.CardRepository
+	cardRepo  repository.CardRepository
+	mediaRepo repository.MediaRepository
 }
 
-func NewCardService(cardRepo repository.CardRepository) CardService {
-	return &cardService{cardRepo: cardRepo}
+func NewCardService(cardRepo repository.CardRepository, mediaRepo repository.MediaRepository) CardService {
+	return &cardService{cardRepo: cardRepo, mediaRepo: mediaRepo}
 }
 
 func (s *cardService) CreateCard(req *models.CreateCardRequest) (*models.CardResponse, error) {
@@ -37,13 +38,59 @@ func (s *cardService) CreateCard(req *models.CreateCardRequest) (*models.CardRes
 	if forSale == "" {
 		forSale = "yes"
 	}
+
+	// Handle media/imageURL
+	var mediaID *uint
+	var imageURL string
+
+	if req.MediaID != nil {
+		// If mediaID is provided, get the media and use its URL
+		media, err := s.mediaRepo.GetByID(*req.MediaID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get media: %w", err)
+		}
+		imageURL = media.URL
+		mediaID = req.MediaID
+
+		// Mark media as attached
+		media.Status = "attached"
+		if err := s.mediaRepo.Update(media); err != nil {
+			return nil, fmt.Errorf("failed to update media status: %w", err)
+		}
+	} else if req.ImageURL != "" {
+		// If imageURL is provided without mediaID, create a new media entry
+		newMedia := &models.Media{
+			URL:      req.ImageURL,
+			Status:   "attached",
+			Provider: "hardlink",
+		}
+		if err := s.mediaRepo.Create(newMedia); err != nil {
+			return nil, fmt.Errorf("failed to create media: %w", err)
+		}
+		imageURL = newMedia.URL
+		mediaID = &newMedia.ID
+	} else {
+		// If no mediaID and no imageURL provided, use default with hardlink provider
+		defaultURL := "https://picsum.photos/230/330.webp"
+		newMedia := &models.Media{
+			URL:      defaultURL,
+			Status:   "attached",
+			Provider: "hardlink",
+		}
+		if err := s.mediaRepo.Create(newMedia); err != nil {
+			return nil, fmt.Errorf("failed to create media: %w", err)
+		}
+		imageURL = newMedia.URL
+		mediaID = &newMedia.ID
+	}
+
 	card := &models.Card{
 		Code:            req.Code,
 		Name:            req.Name,
 		Price:           req.Price,
 		PriceMultiplier: req.PriceMultiplier,
 		Quantity:        req.Quantity,
-		ImageURL:        req.ImageURL,
+		ImageURL:        imageURL,
 		Description:     req.Description,
 		Status:          status,
 		ForSale:         forSale,
@@ -52,6 +99,7 @@ func (s *cardService) CreateCard(req *models.CreateCardRequest) (*models.CardRes
 		PackID:          req.PackID,
 		RarityID:        req.RarityID,
 		StorageID:       req.StorageID,
+		MediaID:         mediaID,
 		LowercaseCode:   utils.Normalize(req.Code),
 		LowercaseName:   utils.Normalize(req.Name),
 	}
@@ -157,9 +205,6 @@ func (s *cardService) UpdateCard(id uint, req *models.UpdateCardRequest) (*model
 	if req.Quantity != nil {
 		card.Quantity = *req.Quantity
 	}
-	if req.ImageURL != nil {
-		card.ImageURL = *req.ImageURL
-	}
 	if req.Description != nil {
 		card.Description = *req.Description
 	}
@@ -183,6 +228,71 @@ func (s *cardService) UpdateCard(id uint, req *models.UpdateCardRequest) (*model
 	}
 	if req.StorageID != nil {
 		card.StorageID = *req.StorageID
+	}
+
+	// Handle media update
+	if req.MediaID != nil {
+		// If mediaID is being changed
+		if card.MediaID == nil || *card.MediaID != *req.MediaID {
+			// Archive the old media if it existed
+			if card.MediaID != nil {
+				oldMedia, err := s.mediaRepo.GetByID(*card.MediaID)
+				if err == nil {
+					oldMedia.Status = "archived"
+					s.mediaRepo.Update(oldMedia)
+				}
+			}
+
+			// Get the new media and mark as attached
+			newMedia, err := s.mediaRepo.GetByID(*req.MediaID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get media: %w", err)
+			}
+
+			newMedia.Status = "attached"
+			if err := s.mediaRepo.Update(newMedia); err != nil {
+				return nil, fmt.Errorf("failed to update media status: %w", err)
+			}
+
+			card.MediaID = req.MediaID
+			card.ImageURL = newMedia.URL
+		}
+	} else if req.ImageURL != nil {
+		// Only update media if imageURL is different from current attached media's URL
+		shouldUpdateMedia := true
+
+		// Check if the imageURL is the same as the current attached media's URL
+		if card.MediaID != nil {
+			currentMedia, err := s.mediaRepo.GetByID(*card.MediaID)
+			if err == nil && currentMedia.URL == *req.ImageURL {
+				// URL is the same, don't create new media
+				shouldUpdateMedia = false
+			}
+		}
+
+		if shouldUpdateMedia {
+			// Archive the old media if it existed
+			if card.MediaID != nil {
+				oldMedia, err := s.mediaRepo.GetByID(*card.MediaID)
+				if err == nil {
+					oldMedia.Status = "archived"
+					s.mediaRepo.Update(oldMedia)
+				}
+			}
+
+			// Create a new media entry with the imageURL
+			newMedia := &models.Media{
+				URL:      *req.ImageURL,
+				Status:   "attached",
+				Provider: "hardlink",
+			}
+			if err := s.mediaRepo.Create(newMedia); err != nil {
+				return nil, fmt.Errorf("failed to create media: %w", err)
+			}
+
+			card.MediaID = &newMedia.ID
+			card.ImageURL = newMedia.URL
+		}
 	}
 
 	if err := s.cardRepo.Update(card); err != nil {
@@ -224,6 +334,7 @@ func (s *cardService) toCardResponse(card *models.Card) *models.CardResponse {
 		RarityID:        card.RarityID,
 		RarityName:      card.Rarity.Name,
 		RarityCode:      card.Rarity.Code,
+		MediaID:         card.MediaID,
 		CreatedAt:       card.CreatedAt,
 		UpdatedAt:       card.UpdatedAt,
 	}
@@ -256,6 +367,7 @@ func (s *cardService) toCardProtectedResponse(card *models.Card) *models.CardPro
 		StorageID:       card.StorageID,
 		StorageName:     card.Storage.Name,
 		StorageCode:     card.Storage.Code,
+		MediaID:         card.MediaID,
 		CreatedAt:       card.CreatedAt,
 		UpdatedAt:       card.UpdatedAt,
 	}

@@ -68,16 +68,26 @@ func main() {
 	packRepo := repository.NewPackRepository(db)
 	rarityRepo := repository.NewRarityRepository(db)
 	storageRepo := repository.NewStorageRepository(db)
+	mediaRepo := repository.NewMediaRepository(db)
 
 	// Initialize services
 	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
 	userService := service.NewUserService(userRepo)
-	cardService := service.NewCardService(cardRepo)
+	cardService := service.NewCardService(cardRepo, mediaRepo)
 	gameService := service.NewGameService(gameRepo)
 	languageService := service.NewLanguageService(languageRepo)
 	packService := service.NewPackService(packRepo)
 	rarityService := service.NewRarityService(rarityRepo)
 	storageService := service.NewStorageService(storageRepo)
+
+	// Initialize card recognition service if API URL is configured
+	var mediaService service.MediaService
+	if cfg.CardScanAPIURL != "" {
+		recognitionService := service.NewCardRecognitionService(cfg.CardScanAPIURL)
+		mediaService = service.NewMediaServiceWithRecognition(mediaRepo, recognitionService)
+	} else {
+		mediaService = service.NewMediaService(mediaRepo)
+	}
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService, cfg)
@@ -88,6 +98,7 @@ func main() {
 	packHandler := handlers.NewPackHandler(packService)
 	rarityHandler := handlers.NewRarityHandler(rarityService)
 	storageHandler := handlers.NewStorageHandler(storageService)
+	mediaHandler := handlers.NewMediaHandler(mediaService, cfg)
 
 	// Setup router
 	router := setupRouter(
@@ -99,6 +110,7 @@ func main() {
 		packHandler,
 		rarityHandler,
 		storageHandler,
+		mediaHandler,
 		cfg.JWTSecret,
 		cfg.FrontendHosts,
 	)
@@ -117,6 +129,7 @@ func setupRouter(
 	packHandler *handlers.PackHandler,
 	rarityHandler *handlers.RarityHandler,
 	storageHandler *handlers.StorageHandler,
+	mediaHandler *handlers.MediaHandler,
 	jwtSecret string,
 	frontendHosts []string,
 ) *gin.Engine {
@@ -145,6 +158,9 @@ func setupRouter(
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "healthy"})
 	})
+
+	// Media serving routes (public)
+	router.GET("/media/:filename", mediaHandler.ServeMedia)
 
 	// API routes
 	v1 := router.Group("/api/v1")
@@ -253,6 +269,12 @@ func setupRouter(
 				storages.POST("", middleware.RequireRole("editor", "admin"), storageHandler.CreateStorage)
 				storages.PUT("/:id", middleware.RequireRole("editor", "admin"), storageHandler.UpdateStorage)
 				storages.DELETE("/:id", middleware.RequireRole("admin"), storageHandler.DeleteStorage)
+			}
+
+			// Media management
+			media := protected.Group("/media")
+			{
+				media.POST("/upload", middleware.RequireRole("editor", "admin"), mediaHandler.UploadImage)
 			}
 		}
 	}

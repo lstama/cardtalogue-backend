@@ -32,6 +32,8 @@ type Card struct {
 	Rarity          Rarity         `json:"rarity,omitempty" gorm:"foreignKey:RarityID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	StorageID       uint           `json:"storage_id,omitempty"`
 	Storage         Storage        `json:"storage,omitempty" gorm:"foreignKey:StorageID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	MediaID         *uint          `json:"media_id,omitempty"`
+	Media           *Media         `json:"media,omitempty" gorm:"foreignKey:MediaID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 type CreateCardRequest struct {
@@ -40,7 +42,7 @@ type CreateCardRequest struct {
 	Price           uint   `json:"price" validate:"min=0,max=1000000000"`
 	PriceMultiplier uint   `json:"price_multiplier" validate:"min=1,max=100000"`
 	Quantity        uint   `json:"quantity" validate:"min=0,max=1000000"`
-	ImageURL        string `json:"image_url" validate:"required,min=1,max=255"`
+	ImageURL        string `json:"image_url" validate:"omitempty,min=1,max=255"`
 	Description     string `json:"description"`
 	Status          string `json:"status" validate:"oneof=enabled disabled"`
 	ForSale         string `json:"for_sale" validate:"required,oneof=yes no"`
@@ -49,6 +51,7 @@ type CreateCardRequest struct {
 	PackID          uint   `json:"pack_id,omitempty" validate:"omitempty,min=1"`
 	RarityID        uint   `json:"rarity_id,omitempty" validate:"omitempty,min=1"`
 	StorageID       uint   `json:"storage_id,omitempty" validate:"omitempty,min=1"`
+	MediaID         *uint  `json:"media_id,omitempty" validate:"omitempty,min=1"`
 }
 
 type UpdateCardRequest struct {
@@ -66,6 +69,7 @@ type UpdateCardRequest struct {
 	PackID          *uint   `json:"pack_id,omitempty" validate:"omitempty,min=1"`
 	RarityID        *uint   `json:"rarity_id,omitempty" validate:"omitempty,min=1"`
 	StorageID       *uint   `json:"storage_id,omitempty" validate:"omitempty,min=1"`
+	MediaID         *uint   `json:"media_id,omitempty" validate:"omitempty,min=1"`
 }
 
 type CardResponse struct {
@@ -90,6 +94,7 @@ type CardResponse struct {
 	RarityID        uint      `json:"rarity_id,omitempty"`
 	RarityName      string    `json:"rarity_name,omitempty"`
 	RarityCode      string    `json:"rarity_code,omitempty"`
+	MediaID         *uint     `json:"media_id,omitempty"`
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 }
@@ -120,6 +125,7 @@ type CardProtectedResponse struct {
 	StorageID       uint      `json:"storage_id,omitempty"`
 	StorageName     string    `json:"storage_name,omitempty"`
 	StorageCode     string    `json:"storage_code,omitempty"`
+	MediaID         *uint     `json:"media_id,omitempty"`
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 }
