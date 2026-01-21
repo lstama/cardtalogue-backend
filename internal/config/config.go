@@ -26,7 +26,7 @@ func Load() *Config {
 	// Load .env file if it exists
 	_ = godotenv.Load()
 
-	frontendHosts := strings.Split(getEnv("FRONTEND_HOSTS", "http://localhost:3000,http://127.0.0.1:3000"), ",")
+	frontendHosts := strings.Split(getEnv("FRONTEND_HOSTS", "http://localhost:3000,http://127.0.0.1:3000,http://172.17.0.1:3000"), ",")
 
 	environment := getEnv("ENVIRONMENT", "development")
 	var sec bool
@@ -48,7 +48,7 @@ func Load() *Config {
 		Secure:               sec,
 		APIBaseURL:           getEnv("API_BASE_URL", "http://localhost:"+getEnv("PORT", "8080")),
 		MediaUploadPath:      getEnv("MEDIA_UPLOAD_PATH", "./uploads/media"),
-		CardScanAPIURL:       getEnv("CARD_SCAN_API_URL", ""),
+		CardScanAPIURL:       getEnv("CARD_SCAN_API_URL", "http://172.17.0.4:5000/api/recognize"),
 	}
 }
 

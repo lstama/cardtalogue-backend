@@ -303,3 +303,7 @@ curl -X DELETE http://localhost:8080/api/v1/items/1 \
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+TODO:
+
+Assign default pack and language, for now ignore them (or maybe pack only?)

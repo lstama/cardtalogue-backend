@@ -79,11 +79,11 @@ dev-setup: ## Setup development environment
 
 docker-up: ## Start database with docker-compose
 	@echo "Starting database..."
-	@docker-compose up -d postgres
+	@docker compose up -d postgres
 
 docker-down: ## Stop docker services
 	@echo "Stopping docker services..."
-	@docker-compose down
+	@docker compose down
 
 # Linting and formatting
 fmt: ## Format code
@@ -100,11 +100,15 @@ install: ## Install the binary
 	@go install cmd/api/main.go
 
 fill-sample:
-	@PGPASSWORD=password psql -h localhost -U user -d dbname -a -f sample-data/initialize.sql
+	@PGPASSWORD=password psql -h 172.17.0.1 -U user -d dbname -a -f sample-data/initialize.sql
 
 delete-db:
 	@podman ps --format "{{.ID}}" --filter "name=postgres" | xargs podman rm -f
 	@podman volume rm -f cardtalogue-backend_postgres_data
+
+delete-db-docker:
+	@docker ps --format "{{.ID}}" --filter "name=postgres" | xargs docker rm -f
+	@docker volume rm -f cardtalogue-backend_postgres_data
 
 up-db:
 	@podman-compose up -d postgres

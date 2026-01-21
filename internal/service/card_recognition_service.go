@@ -12,7 +12,7 @@ import (
 )
 
 type CardRecognitionService interface {
-	RecognizeCard(file *multipart.FileHeader) (*models.ScanResult, error)
+	RecognizeCard(file *multipart.FileHeader) (*models.CardScanResponse, error)
 }
 
 type cardRecognitionService struct {
@@ -23,7 +23,7 @@ func NewCardRecognitionService(apiURL string) CardRecognitionService {
 	return &cardRecognitionService{apiURL: apiURL}
 }
 
-func (s *cardRecognitionService) RecognizeCard(file *multipart.FileHeader) (*models.ScanResult, error) {
+func (s *cardRecognitionService) RecognizeCard(file *multipart.FileHeader) (*models.CardScanResponse, error) {
 	// Create multipart form request
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -79,38 +79,5 @@ func (s *cardRecognitionService) RecognizeCard(file *multipart.FileHeader) (*mod
 		return nil, fmt.Errorf("recognition API returned success=false")
 	}
 
-	// Convert to simplified result
-	result := &models.ScanResult{
-		Matches: make([]models.ScanMatchResult, 0),
-	}
-
-	for _, match := range apiResponse.Matches {
-		matchResult := models.ScanMatchResult{
-			Name:       match.Name,
-			Confidence: match.Confidence,
-		}
-
-		// Extract description from the info
-		if match.Info != nil {
-			descData := map[string]interface{}{}
-			if match.Info.Description.Effect != nil {
-				descData["effect"] = match.Info.Description.Effect
-			}
-			if match.Info.Description.MonsterEffect != nil {
-				descData["monster_effect"] = match.Info.Description.MonsterEffect
-			}
-			if match.Info.Description.PendulumEffect != nil {
-				descData["pendulum_effect"] = match.Info.Description.PendulumEffect
-			}
-
-			if len(descData) > 0 {
-				descBytes, _ := json.Marshal(descData)
-				matchResult.Description = descBytes
-			}
-		}
-
-		result.Matches = append(result.Matches, matchResult)
-	}
-
-	return result, nil
+	return &apiResponse, nil
 }
