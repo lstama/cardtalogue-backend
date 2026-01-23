@@ -48,7 +48,7 @@ func (h *CardHandler) CreateCard(c *gin.Context) {
 
 // GetCard godoc
 // @Summary Get card by ID
-// @Description Retrieve a card by its ID
+// @Description Retrieve a card by its ID. Unauthenticated users can only see enabled cards.
 // @Tags Cards
 // @Accept json
 // @Produce json
@@ -65,7 +65,13 @@ func (h *CardHandler) GetCard(c *gin.Context) {
 		return
 	}
 
-	card, err := h.cardService.GetCard(uint(id))
+	var card *models.CardResponse
+	if c.GetBool("isAuthenticated") {
+		card, err = h.cardService.GetCard(uint(id))
+	} else {
+		card, err = h.cardService.GetCardPublic(uint(id))
+	}
+
 	if err != nil {
 		if err.Error() == "card not found" {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -113,7 +119,7 @@ func (h *CardHandler) GetCardProtected(c *gin.Context) {
 
 // GetCards godoc
 // @Summary Get list of cards
-// @Description Retrieve a list of cards with pagination
+// @Description Retrieve a list of cards with pagination. Unauthenticated users can only see enabled cards.
 // @Tags Cards
 // @Accept json
 // @Produce json
@@ -127,7 +133,16 @@ func (h *CardHandler) GetCards(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.Query("limit"))
 	offset, _ := strconv.Atoi(c.Query("offset"))
 
-	cards, total, err := h.cardService.GetCards(limit, offset)
+	var cards []*models.CardResponse
+	var total int64
+	var err error
+
+	if c.GetBool("isAuthenticated") {
+		cards, total, err = h.cardService.GetCards(limit, offset)
+	} else {
+		cards, total, err = h.cardService.GetCardsPublic(limit, offset)
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -252,7 +267,7 @@ func (h *CardHandler) DeleteCard(c *gin.Context) {
 
 // SearchCards godoc
 // @Summary Search cards
-// @Description Search for cards based on game, language, pack, and query string with pagination, use id = 0 to ignore a filter
+// @Description Search for cards based on game, language, pack, and query string with pagination, use id = 0 to ignore a filter. Unauthenticated users can only see enabled cards.
 // @Tags Cards
 // @Accept json
 // @Produce json
@@ -275,7 +290,16 @@ func (h *CardHandler) SearchCards(c *gin.Context) {
 	pack_id, _ := strconv.Atoi(c.Query("pack_id"))
 	query_string := c.Query("query")
 
-	cards, total, err := h.cardService.SearchCards(game_id, language_id, pack_id, query_string, limit, offset)
+	var cards []*models.CardResponse
+	var total int64
+	var err error
+
+	if c.GetBool("isAuthenticated") {
+		cards, total, err = h.cardService.SearchCards(game_id, language_id, pack_id, query_string, limit, offset)
+	} else {
+		cards, total, err = h.cardService.SearchCardsPublic(game_id, language_id, pack_id, query_string, limit, offset)
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

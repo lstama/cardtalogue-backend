@@ -10,6 +10,58 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// OptionalJWTAuth middleware checks for JWT token but doesn't require it
+// If token is valid, sets isAuthenticated=true, otherwise sets isAuthenticated=false
+func OptionalJWTAuth(jwtSecret string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+
+		// Default to unauthenticated
+		c.Set("isAuthenticated", false)
+
+		if authHeader == "" {
+			c.Next()
+			return
+		}
+
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		if tokenString == authHeader {
+			// No Bearer prefix, continue as unauthenticated
+			c.Next()
+			return
+		}
+
+		// Create a temporary auth service to validate token
+		authService := &authServiceValidator{jwtSecret: jwtSecret}
+		token, err := authService.ValidateToken(tokenString)
+		if err != nil || !token.Valid {
+			// Invalid token, continue as unauthenticated
+			c.Next()
+			return
+		}
+
+		claims, ok := token.Claims.(*service.JWTClaims)
+		if !ok {
+			// Invalid claims, continue as unauthenticated
+			c.Next()
+			return
+		}
+
+		// Token is valid, set as authenticated
+		c.Set("isAuthenticated", true)
+		c.Set("userID", claims.UserID)
+		c.Set("userEmail", claims.Email)
+		c.Set("userRole", claims.Role)
+		c.Set("user", gin.H{
+			"id":    claims.UserID,
+			"email": claims.Email,
+			"role":  claims.Role,
+		})
+
+		c.Next()
+	}
+}
+
 func JWTAuth(jwtSecret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")

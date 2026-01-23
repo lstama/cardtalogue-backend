@@ -13,6 +13,8 @@ type MediaService interface {
 	UploadImage(file *multipart.FileHeader, baseURL, uploadPath string, alsoScan bool) (*models.MediaResponse, map[string]interface{}, error)
 	GetMedia(id uint) (*models.Media, error)
 	DeleteMedia(id uint) error
+	DeletePendingMedia() error
+	DeleteOldPendingMedia(minutes int) error
 }
 
 type mediaService struct {
@@ -87,4 +89,12 @@ func (s *mediaService) GetMedia(id uint) (*models.Media, error) {
 
 func (s *mediaService) DeleteMedia(id uint) error {
 	return s.mediaRepo.Delete(id)
+}
+
+func (s *mediaService) DeletePendingMedia() error {
+	return s.mediaRepo.DeleteByStatus("pending")
+}
+
+func (s *mediaService) DeleteOldPendingMedia(minutes int) error {
+	return s.mediaRepo.DeleteByStatusOlderThan("pending", minutes)
 }

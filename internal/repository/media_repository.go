@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/lstama/cardtalogue-backend/internal/models"
 
@@ -15,6 +16,8 @@ type MediaRepository interface {
 	Update(media *models.Media) error
 	Delete(id uint) error
 	Count() (int64, error)
+	DeleteByStatus(status string) error
+	DeleteByStatusOlderThan(status string, minutes int) error
 }
 
 type mediaRepository struct {
@@ -72,4 +75,19 @@ func (r *mediaRepository) Count() (int64, error) {
 		return 0, fmt.Errorf("failed to count medias: %w", err)
 	}
 	return count, nil
+}
+
+func (r *mediaRepository) DeleteByStatus(status string) error {
+	if err := r.db.Where("status = ?", status).Delete(&models.Media{}).Error; err != nil {
+		return fmt.Errorf("failed to delete medias with status %s: %w", status, err)
+	}
+	return nil
+}
+
+func (r *mediaRepository) DeleteByStatusOlderThan(status string, minutes int) error {
+	cutoffTime := time.Now().Add(-time.Duration(minutes) * time.Minute)
+	if err := r.db.Where("status = ? AND created_at < ?", status, cutoffTime).Delete(&models.Media{}).Error; err != nil {
+		return fmt.Errorf("failed to delete medias with status %s older than %d minutes: %w", status, minutes, err)
+	}
+	return nil
 }

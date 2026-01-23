@@ -165,6 +165,9 @@ func setupRouter(
 	// API routes
 	v1 := router.Group("/api/v1")
 	{
+		// Optional auth middleware for public endpoints that need to differentiate authenticated/unauthenticated users
+		v1.Use(middleware.OptionalJWTAuth(jwtSecret))
+
 		// Public routes
 		auth := v1.Group("/auth")
 		{
@@ -172,23 +175,23 @@ func setupRouter(
 			auth.POST("/refresh", authHandler.RefreshToken)
 		}
 
-		// Public cards endpoint (no auth required)
+		// Public cards endpoint (optional auth)
 		v1.GET("/cards", cardHandler.GetCards)
 		v1.GET("cards/:id", cardHandler.GetCard)
 		v1.GET("/cards/search", cardHandler.SearchCards)
-		// Public games endpoint (no auth required)
+		// Public games endpoint (optional auth)
 		v1.GET("/games", gameHandler.GetGames)
 		v1.GET("games/:id", gameHandler.GetGame)
 		v1.GET("/games/search", gameHandler.SearchGames)
-		// Public languages endpoint (no auth required)
+		// Public languages endpoint (optional auth)
 		v1.GET("/languages", languageHandler.GetLanguages)
 		v1.GET("languages/:id", languageHandler.GetLanguage)
 		v1.GET("/languages/search", languageHandler.SearchLanguages)
-		// Public packs endpoint (no auth required)
+		// Public packs endpoint (optional auth)
 		v1.GET("/packs", packHandler.GetPacks)
 		v1.GET("packs/:id", packHandler.GetPack)
 		v1.GET("/packs/search", packHandler.SearchPacks)
-		// Public rarities endpoint (no auth required)
+		// Public rarities endpoint (optional auth)
 		v1.GET("/rarities", rarityHandler.GetRarities)
 		v1.GET("rarities/:id", rarityHandler.GetRarity)
 		v1.GET("/rarities/search", rarityHandler.SearchRarities)
@@ -222,6 +225,7 @@ func setupRouter(
 				// Editors and Admins can create and update
 				cards.POST("", middleware.RequireRole("editor", "admin"), cardHandler.CreateCard)
 				cards.PUT("/:id", middleware.RequireRole("editor", "admin"), cardHandler.UpdateCard)
+				cards.PUT("/protected/:id", middleware.RequireRole("editor", "admin"), cardHandler.UpdateCard)
 
 				// Only Admins can delete
 				cards.DELETE("/:id", middleware.RequireRole("admin"), cardHandler.DeleteCard)

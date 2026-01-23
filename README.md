@@ -306,4 +306,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 TODO:
 
-Assign default pack and language, for now ignore them (or maybe pack only?)
+Nothing for now

@@ -11,12 +11,15 @@ import (
 type CardService interface {
 	CreateCard(req *models.CreateCardRequest) (*models.CardResponse, error)
 	GetCard(id uint) (*models.CardResponse, error)
+	GetCardPublic(id uint) (*models.CardResponse, error)
 	GetCardProtected(id uint) (*models.CardProtectedResponse, error)
 	GetCards(limit, offset int) ([]*models.CardResponse, int64, error)
+	GetCardsPublic(limit, offset int) ([]*models.CardResponse, int64, error)
 	GetCardsProtected(limit, offset int) ([]*models.CardProtectedResponse, int64, error)
 	UpdateCard(id uint, req *models.UpdateCardRequest) (*models.CardResponse, error)
 	DeleteCard(id uint) error
 	SearchCards(game_id int, language_id int, pack_id int, query_string string, limit, offset int) ([]*models.CardResponse, int64, error)
+	SearchCardsPublic(game_id int, language_id int, pack_id int, query_string string, limit, offset int) ([]*models.CardResponse, int64, error)
 }
 
 type cardService struct {
@@ -108,11 +111,26 @@ func (s *cardService) CreateCard(req *models.CreateCardRequest) (*models.CardRes
 		return nil, fmt.Errorf("failed to create card: %w", err)
 	}
 
+	// Delete pending media older than 10 minutes after successfully creating the card
+	// This avoids deleting photos that other users are currently working on
+	if err := s.mediaRepo.DeleteByStatusOlderThan("pending", 10); err != nil {
+		// Log the error but don't fail the card creation
+		fmt.Printf("Warning: failed to delete old pending media: %v\n", err)
+	}
+
 	return s.toCardResponse(card), nil
 }
 
 func (s *cardService) GetCard(id uint) (*models.CardResponse, error) {
 	card, err := s.cardRepo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+	return s.toCardResponse(card), nil
+}
+
+func (s *cardService) GetCardPublic(id uint) (*models.CardResponse, error) {
+	card, err := s.cardRepo.GetByIDWithStatus(id, false)
 	if err != nil {
 		return nil, err
 	}
@@ -142,6 +160,33 @@ func (s *cardService) GetCards(limit, offset int) ([]*models.CardResponse, int64
 	}
 
 	total, err := s.cardRepo.Count()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	responses := make([]*models.CardResponse, len(cards))
+	for i, card := range cards {
+		responses[i] = s.toCardResponse(card)
+	}
+
+	return responses, total, nil
+}
+
+func (s *cardService) GetCardsPublic(limit, offset int) ([]*models.CardResponse, int64, error) {
+	// Set default limit if not provided
+	if limit <= 0 {
+		limit = 20
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	cards, err := s.cardRepo.GetAllWithStatus(limit, offset, false)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, err := s.cardRepo.CountWithStatus(false)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -383,6 +428,28 @@ func (s *cardService) SearchCards(game_id int, language_id int, pack_id int, que
 	}
 
 	cards, total, err := s.cardRepo.Search(game_id, language_id, pack_id, query_string, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	responses := make([]*models.CardResponse, len(cards))
+	for i, card := range cards {
+		responses[i] = s.toCardResponse(card)
+	}
+
+	return responses, total, nil
+}
+
+func (s *cardService) SearchCardsPublic(game_id int, language_id int, pack_id int, query_string string, limit, offset int) ([]*models.CardResponse, int64, error) {
+	// Set default limit if not provided
+	if limit <= 0 {
+		limit = 20
+	}
+	if limit > 100 {
+		limit = 100
+	}
+
+	cards, total, err := s.cardRepo.SearchWithStatus(game_id, language_id, pack_id, query_string, limit, offset, false)
 	if err != nil {
 		return nil, 0, err
 	}
