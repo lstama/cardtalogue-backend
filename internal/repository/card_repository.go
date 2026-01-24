@@ -104,7 +104,7 @@ func (r *cardRepository) CountWithStatus(includeDisabled bool) (int64, error) {
 }
 
 func (r *cardRepository) Search(gameID, languageID, packID int, queryString string, limit, offset int) ([]*models.Card, int64, error) {
-	return r.SearchWithStatus(gameID, languageID, packID, queryString, limit, offset, false)
+	return r.SearchWithStatus(gameID, languageID, packID, queryString, limit, offset, true)
 }
 
 func (r *cardRepository) SearchWithStatus(gameID, languageID, packID int, queryString string, limit, offset int, includeDisabled bool) ([]*models.Card, int64, error) {

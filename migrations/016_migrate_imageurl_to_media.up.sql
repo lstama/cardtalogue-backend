@@ -12,3 +12,11 @@ SET media_id = (
     LIMIT 1
 )
 WHERE c.media_id IS NULL AND c.image_url IS NOT NULL AND c.image_url != '';
+
+-- Verify all cards with image_url have a media_id
+-- Cards with image_url but no media match should still be tracked
+ALTER TABLE cards ADD CONSTRAINT check_image_url_consistency 
+CHECK ((image_url IS NULL AND media_id IS NULL) OR (image_url IS NOT NULL));
+
+-- Add partial unique index to allow duplicate URLs only for hardlink provider
+CREATE UNIQUE INDEX idx_media_url_unique_non_hardlink ON media(url) WHERE provider != 'hardlink';

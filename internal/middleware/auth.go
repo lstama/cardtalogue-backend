@@ -34,8 +34,14 @@ func OptionalJWTAuth(jwtSecret string) gin.HandlerFunc {
 		// Create a temporary auth service to validate token
 		authService := &authServiceValidator{jwtSecret: jwtSecret}
 		token, err := authService.ValidateToken(tokenString)
-		if err != nil || !token.Valid {
+		if err != nil {
 			// Invalid token, continue as unauthenticated
+			c.Next()
+			return
+		}
+
+		if !token.Valid {
+			// Token is not valid
 			c.Next()
 			return
 		}

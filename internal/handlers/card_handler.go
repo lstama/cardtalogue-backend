@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -290,13 +291,18 @@ func (h *CardHandler) SearchCards(c *gin.Context) {
 	pack_id, _ := strconv.Atoi(c.Query("pack_id"))
 	query_string := c.Query("query")
 
+	isAuthenticated := c.GetBool("isAuthenticated")
+	log.Printf("[SearchCards] isAuthenticated: %v", isAuthenticated)
+
 	var cards []*models.CardResponse
 	var total int64
 	var err error
 
-	if c.GetBool("isAuthenticated") {
+	if isAuthenticated {
+		log.Printf("[SearchCards] Using authenticated search")
 		cards, total, err = h.cardService.SearchCards(game_id, language_id, pack_id, query_string, limit, offset)
 	} else {
+		log.Printf("[SearchCards] Using public search")
 		cards, total, err = h.cardService.SearchCardsPublic(game_id, language_id, pack_id, query_string, limit, offset)
 	}
 
