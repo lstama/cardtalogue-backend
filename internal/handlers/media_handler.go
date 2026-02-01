@@ -63,6 +63,35 @@ func (h *MediaHandler) UploadImage(c *gin.Context) {
 	c.JSON(http.StatusCreated, response)
 }
 
+// ScanImage godoc
+// @Summary Scan an image for card recognition
+// @Description Scan an uploaded image file to recognize card details
+// @Tags Media
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "Image file (JPEG, PNG, GIF)"
+// @Success 200 {object} object{data=models.CardScanResponse}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /media/scan [post]
+// func (h *MediaHandler) ScanImage(c *gin.Context) {
+// 	// Parse multipart form
+// 	file, err := c.FormFile("file")
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "file is required"})
+// 		return
+// 	}
+
+// 	// Scan image
+// 	scanResult, err := h.mediaService.ScanImage(file)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{"data": scanResult})
+// }
+
 // ServeMedia godoc
 // @Summary Serve an image file
 // @Description Retrieve and serve a media file by filename

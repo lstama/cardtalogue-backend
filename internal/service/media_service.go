@@ -1,8 +1,10 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"mime/multipart"
+	"net/http"
 
 	"github.com/lstama/cardtalogue-backend/internal/models"
 	"github.com/lstama/cardtalogue-backend/internal/repository"
@@ -15,6 +17,7 @@ type MediaService interface {
 	DeleteMedia(id uint) error
 	DeletePendingMedia() error
 	DeleteOldPendingMedia(minutes int) error
+	// ScanImage(file *multipart.FileHeader) (*models.CardScanResponse, error)
 }
 
 type mediaService struct {
@@ -34,6 +37,10 @@ func NewMediaServiceWithRecognition(mediaRepo repository.MediaRepository, recogn
 }
 
 func (s *mediaService) UploadImage(file *multipart.FileHeader, baseURL, uploadPath string, alsoScan bool) (*models.MediaResponse, map[string]interface{}, error) {
+	if ValidateImage(file, 5*1024*1024) != nil {
+		return nil, nil, errors.New("invalid image file")
+	}
+
 	// Process and save the image
 	filename, err := utils.ProcessAndSaveImage(file, uploadPath)
 	if err != nil {
@@ -83,6 +90,22 @@ func (s *mediaService) UploadImage(file *multipart.FileHeader, baseURL, uploadPa
 	return response, scanResult, nil
 }
 
+// func (s *mediaService) ScanImage(file *multipart.FileHeader) (*models.CardScanResponse, error) {
+// 	if ValidateImage(file, 5*1024*1024) != nil {
+// 		return nil, errors.New("invalid image file")
+// 	}
+
+// 	var response *models.CardScanResponse
+// 	if s.recognitionSvc != nil {
+// 		scanData, err := s.recognitionSvc.RecognizeCard(file)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("card recognition failed: %w", err)
+// 		}
+// 		response = scanData
+// 	}
+// 	return response, nil
+// }
+
 func (s *mediaService) GetMedia(id uint) (*models.Media, error) {
 	return s.mediaRepo.GetByID(id)
 }
@@ -97,4 +120,34 @@ func (s *mediaService) DeletePendingMedia() error {
 
 func (s *mediaService) DeleteOldPendingMedia(minutes int) error {
 	return s.mediaRepo.DeleteByStatusOlderThan("pending", minutes)
+}
+
+func ValidateImage(header *multipart.FileHeader, maxBytes int64) error {
+	// 1. Check Size
+	if header.Size > maxBytes {
+		return errors.New("file size exceeds limit")
+	}
+
+	// 2. Open file to sniff content
+	file, err := header.Open()
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Read the first 512 bytes to detect the type
+	buff := make([]byte, 512)
+	if _, err := file.Read(buff); err != nil {
+		return err
+	}
+
+	fileType := http.DetectContentType(buff)
+
+	// 3. Allowed Mime Types
+	switch fileType {
+	case "image/jpeg", "image/png", "image/webp", "image/gif":
+		return nil
+	default:
+		return errors.New("invalid file type: " + fileType)
+	}
 }
