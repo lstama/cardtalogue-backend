@@ -17,6 +17,8 @@ import (
 	_ "github.com/lstama/cardtalogue-backend/docs"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+
+	"github.com/penglongli/gin-metrics/ginmetrics"
 )
 
 // @title           Card Catalogue API
@@ -134,6 +136,13 @@ func setupRouter(
 	frontendHosts []string,
 ) *gin.Engine {
 	router := gin.Default()
+
+	// Add metrics (this is the only addition)
+	m := ginmetrics.GetMonitor()
+	m.SetMetricPath("/metrics")
+	m.SetSlowTime(10)                              // Log slow requests (>10s)
+	m.SetDuration([]float64{0.1, 0.3, 1.2, 5, 10}) // Histogram buckets
+	m.Use(router)
 
 	// CORS configuration
 	router.Use(cors.New(cors.Config{

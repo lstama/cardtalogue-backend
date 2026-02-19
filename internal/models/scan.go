@@ -12,6 +12,7 @@ type CardScanMatch struct {
 	Name       string     `json:"name"`
 	Confidence float64    `json:"confidence"`
 	Detail     CardDetail `json:"detail"`
+	KonamiID   string    `json:"konami_id,omitempty"`
 }
 
 // CardScanResponse represents the response from the card recognition API
