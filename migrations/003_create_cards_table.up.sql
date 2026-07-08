@@ -1,5 +1,5 @@
 CREATE TABLE cards (
-    id SERIAL PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     code VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     price INT NOT NULL DEFAULT 100,
@@ -9,7 +9,7 @@ CREATE TABLE cards (
     description TEXT,
     status VARCHAR(20) NOT NULL DEFAULT 'enabled',
     for_sale VARCHAR(20) NOT NULL DEFAULT 'yes',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    deleted_at TIMESTAMP WITH TIME ZONE
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );

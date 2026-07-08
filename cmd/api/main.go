@@ -46,14 +46,14 @@ func main() {
 	cfg := config.Load()
 
 	// Initialize database
-	db, err := database.NewConnection(cfg.DatabaseURL)
+	db, err := database.NewConnection(cfg.DatabaseURL, cfg.DatabaseDriver)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer database.Close(db)
 
 	// Run migrations
-	if err := database.RunMigrations(cfg.DatabaseURL, cfg.MigrationsPath); err != nil {
+	if err := database.RunMigrations(cfg.DatabaseURL, cfg.DatabaseDriver, cfg.MigrationsPath); err != nil {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 

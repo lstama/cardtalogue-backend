@@ -9,6 +9,7 @@ import (
 
 type Config struct {
 	DatabaseURL          string
+	DatabaseDriver       string
 	Port                 string
 	MigrationsPath       string
 	JWTSecret            string
@@ -37,7 +38,8 @@ func Load() *Config {
 	}
 
 	return &Config{
-		DatabaseURL:          getEnv("DATABASE_URL", "postgres://user:password@localhost/dbname?sslmode=disable"),
+		DatabaseURL:          getEnv("DATABASE_URL", "file:./data.db"),
+		DatabaseDriver:       getEnv("DATABASE_DRIVER", "sqlite"),
 		Port:                 getEnv("PORT", "8080"),
 		MigrationsPath:       getEnv("MIGRATIONS_PATH", "file://migrations"),
 		JWTSecret:            getEnv("JWT_SECRET", "your-super-secret-jwt-key-change-this-in-production"),

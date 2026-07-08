@@ -1,8 +1,8 @@
 CREATE TABLE games (
-    id SERIAL PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Insert some default games
@@ -12,5 +12,4 @@ INSERT INTO games (name) VALUES
     ('Pokémon'),
     ('Digimon'),
     ('Cardfight!! Vanguard'),
-    ('Weiß Schwarz')
-ON CONFLICT (name) DO NOTHING;
+    ('Weiß Schwarz');

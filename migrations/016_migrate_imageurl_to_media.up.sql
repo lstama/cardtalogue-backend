@@ -1,6 +1,6 @@
 -- Migrate existing card imageURLs to media entries
 INSERT INTO media (url, status, provider, created_at, updated_at)
-SELECT DISTINCT image_url, 'attached', 'hardlink', NOW(), NOW()
+SELECT DISTINCT image_url, 'attached', 'hardlink', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM cards
 WHERE image_url IS NOT NULL AND image_url != '';
 
@@ -18,5 +18,5 @@ WHERE c.media_id IS NULL AND c.image_url IS NOT NULL AND c.image_url != '';
 ALTER TABLE cards ADD CONSTRAINT check_image_url_consistency 
 CHECK ((image_url IS NULL AND media_id IS NULL) OR (image_url IS NOT NULL));
 
--- Add partial unique index to allow duplicate URLs only for hardlink provider
-CREATE UNIQUE INDEX idx_media_url_unique_non_hardlink ON media(url) WHERE provider != 'hardlink';
+-- Note: Unique index for non-hardlink URLs is skipped here for cross-database compatibility.
+-- Consider handling this in application logic or using a composite index (url, provider).

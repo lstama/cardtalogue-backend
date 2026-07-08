@@ -1,5 +1,5 @@
-CREATE INDEX idx_cards_status ON cards(status) WHERE deleted_at IS NULL;
-CREATE INDEX idx_cards_name ON cards(name) WHERE deleted_at IS NULL;
+CREATE INDEX idx_cards_status ON cards(status);
+CREATE INDEX idx_cards_name ON cards(name);
 CREATE INDEX idx_cards_code ON cards(code);
 CREATE INDEX idx_cards_price ON cards(price);
 CREATE INDEX idx_cards_price_multiplier ON cards(price_multiplier);

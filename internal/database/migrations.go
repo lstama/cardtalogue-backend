@@ -9,26 +9,43 @@ import (
 	"github.com/lstama/cardtalogue-backend/internal/models"
 
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	_ "github.com/golang-migrate/migrate/v4/database/mysql"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
-func RunMigrations(databaseURL, migrationsPath string) error {
-	db, err := sql.Open("postgres", databaseURL)
+func RunMigrations(databaseURL, databaseDriver, migrationsPath string) error {
+	var driver sql.Driver
+	var migrateDriver interface{}
+
+	switch databaseDriver {
+	case "postgres":
+		driver = postgres.New(databaseURL, &postgres.Config{})
+		migrateDriver = postgres.WithInstance(driver, &postgres.Config{})
+	case "mysql":
+		driver = mysql.New(databaseURL, &mysql.Config{})
+		migrateDriver = mysql.WithInstance(driver, &mysql.Config{})
+	case "sqlite":
+		driver = sqlite3.New(databaseURL)
+		migrateDriver = sqlite3.WithInstance(driver, &sqlite3.Config{})
+	default:
+		return fmt.Errorf("unsupported database driver: %s", databaseDriver)
+	}
+
+	db, err := sql.Open(databaseDriver, databaseURL)
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
 	}
 	defer db.Close()
 
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
-	if err != nil {
-		return fmt.Errorf("failed to create migration driver: %w", err)
-	}
-
-	m, err := migrate.NewWithDatabaseInstance(migrationsPath, "postgres", driver)
+	m, err := migrate.NewWithDatabaseInstance(migrationsPath, databaseDriver, migrateDriver)
 	if err != nil {
 		return fmt.Errorf("failed to create migration instance: %w", err)
 	}
@@ -41,19 +58,31 @@ func RunMigrations(databaseURL, migrationsPath string) error {
 	return nil
 }
 
-func RollbackMigrations(databaseURL, migrationsPath string, steps int) error {
-	db, err := sql.Open("postgres", databaseURL)
+func RollbackMigrations(databaseURL, databaseDriver, migrationsPath string, steps int) error {
+	var driver sql.Driver
+	var migrateDriver interface{}
+
+	switch databaseDriver {
+	case "postgres":
+		driver = postgres.New(databaseURL, &postgres.Config{})
+		migrateDriver = postgres.WithInstance(driver, &postgres.Config{})
+	case "mysql":
+		driver = mysql.New(databaseURL, &mysql.Config{})
+		migrateDriver = mysql.WithInstance(driver, &mysql.Config{})
+	case "sqlite":
+		driver = sqlite3.New(databaseURL)
+		migrateDriver = sqlite3.WithInstance(driver, &sqlite3.Config{})
+	default:
+		return fmt.Errorf("unsupported database driver: %s", databaseDriver)
+	}
+
+	db, err := sql.Open(databaseDriver, databaseURL)
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
 	}
 	defer db.Close()
 
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
-	if err != nil {
-		return fmt.Errorf("failed to create migration driver: %w", err)
-	}
-
-	m, err := migrate.NewWithDatabaseInstance(migrationsPath, "postgres", driver)
+	m, err := migrate.NewWithDatabaseInstance(migrationsPath, databaseDriver, migrateDriver)
 	if err != nil {
 		return fmt.Errorf("failed to create migration instance: %w", err)
 	}
@@ -66,19 +95,31 @@ func RollbackMigrations(databaseURL, migrationsPath string, steps int) error {
 	return nil
 }
 
-func GetMigrationVersion(databaseURL, migrationsPath string) (uint, bool, error) {
-	db, err := sql.Open("postgres", databaseURL)
+func GetMigrationVersion(databaseURL, databaseDriver, migrationsPath string) (uint, bool, error) {
+	var driver sql.Driver
+	var migrateDriver interface{}
+
+	switch databaseDriver {
+	case "postgres":
+		driver = postgres.New(databaseURL, &postgres.Config{})
+		migrateDriver = postgres.WithInstance(driver, &postgres.Config{})
+	case "mysql":
+		driver = mysql.New(databaseURL, &mysql.Config{})
+		migrateDriver = mysql.WithInstance(driver, &mysql.Config{})
+	case "sqlite":
+		driver = sqlite3.New(databaseURL)
+		migrateDriver = sqlite3.WithInstance(driver, &sqlite3.Config{})
+	default:
+		return 0, false, fmt.Errorf("unsupported database driver: %s", databaseDriver)
+	}
+
+	db, err := sql.Open(databaseDriver, databaseURL)
 	if err != nil {
 		return 0, false, fmt.Errorf("failed to open database: %w", err)
 	}
 	defer db.Close()
 
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
-	if err != nil {
-		return 0, false, fmt.Errorf("failed to create migration driver: %w", err)
-	}
-
-	m, err := migrate.NewWithDatabaseInstance(migrationsPath, "postgres", driver)
+	m, err := migrate.NewWithDatabaseInstance(migrationsPath, databaseDriver, migrateDriver)
 	if err != nil {
 		return 0, false, fmt.Errorf("failed to create migration instance: %w", err)
 	}

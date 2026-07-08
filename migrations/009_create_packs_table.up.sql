@@ -1,14 +1,14 @@
 
 CREATE TABLE packs (
-    id SERIAL PRIMARY KEY,
+    id BIGINT PRIMARY KEY,
     code VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL UNIQUE,
     image_url VARCHAR(255) NOT NULL DEFAULT 'https://picsum.photos/230/330.webp',
     description TEXT,
     game_id INTEGER NOT NULL,
     language_id INTEGER NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uniquePacks UNIQUE (code, game_id, language_id)
 );
 
