@@ -8,7 +8,10 @@ import (
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
+	dbase "github.com/golang-migrate/migrate/v4/database"
+	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"github.com/lstama/cardtalogue-backend/internal/config"
 	"github.com/lstama/cardtalogue-backend/internal/database"
 )
@@ -123,28 +126,26 @@ func createMigrationFiles(name string) error {
 }
 
 func forceMigrationVersion(databaseURL, databaseDriver, migrationsPath string, version int) error {
-	var driver sql.Driver
-	var migrateDriver interface{}
-
-	switch databaseDriver {
-	case "postgres":
-		driver = postgres.New(databaseURL, &postgres.Config{})
-		migrateDriver = postgres.WithInstance(driver, &postgres.Config{})
-	case "mysql":
-		driver = mysql.New(databaseURL, &mysql.Config{})
-		migrateDriver = mysql.WithInstance(driver, &mysql.Config{})
-	case "sqlite":
-		driver = sqlite3.New(databaseURL)
-		migrateDriver = sqlite3.WithInstance(driver, &sqlite3.Config{})
-	default:
-		return fmt.Errorf("unsupported database driver: %s", databaseDriver)
-	}
-
 	db, err := sql.Open(databaseDriver, databaseURL)
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
 	}
 	defer db.Close()
+
+	var migrateDriver dbase.Driver
+	switch databaseDriver {
+	case "postgres":
+		migrateDriver, err = postgres.WithInstance(db, &postgres.Config{})
+	case "mysql":
+		migrateDriver, err = mysql.WithInstance(db, &mysql.Config{})
+	case "sqlite":
+		migrateDriver, err = sqlite3.WithInstance(db, &sqlite3.Config{})
+	default:
+		return fmt.Errorf("unsupported database driver: %s", databaseDriver)
+	}
+	if err != nil {
+		return fmt.Errorf("failed to create migrate instance: %w", err)
+	}
 
 	m, err := migrate.NewWithDatabaseInstance(migrationsPath, databaseDriver, migrateDriver)
 	if err != nil {

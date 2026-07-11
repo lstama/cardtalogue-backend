@@ -4,16 +4,16 @@
 	"name": "Go",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/go:1.23-bookworm",
-	"features": {
-        "ghcr.io/nlstn/devcontainer-features/psql:1": {},
-        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-            "enableNonRootDocker": "true"
-        }
-    },
-	"remoteEnv": {
-		"DOCKER_HOST": "unix:///var/run/docker.sock"
-	},
-	"mounts": [
-		"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
-	]
+	// "features": {
+    //     "ghcr.io/nlstn/devcontainer-features/psql:1": {},
+    //     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+    //         "enableNonRootDocker": "true"
+    //     }
+    // },
+	// "remoteEnv": {
+	// 	"DOCKER_HOST": "unix:///var/run/docker.sock"
+	// },
+	// "mounts": [
+	// 	"source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+	// ]
 }
