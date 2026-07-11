@@ -1,126 +1,60 @@
 package database
 
 import (
-	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 
 	"github.com/lstama/cardtalogue-backend/internal/models"
-
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database"
-	"github.com/golang-migrate/migrate/v4/database/mysql"
-	_ "github.com/golang-migrate/migrate/v4/database/mysql"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/golang-migrate/migrate/v4/database/sqlite3"
-	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 func RunMigrations(databaseURL, databaseDriver, migrationsPath string) error {
-	db, err := sql.Open(databaseDriver, databaseURL)
+	_ = migrationsPath
+
+	db, err := NewConnection(databaseURL, databaseDriver)
 	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
-	}
-	defer db.Close()
-
-	var migrateDriver database.Driver
-	switch databaseDriver {
-	case "postgres":
-		migrateDriver, err = postgres.WithInstance(db, &postgres.Config{})
-	case "mysql":
-		migrateDriver, err = mysql.WithInstance(db, &mysql.Config{})
-	case "sqlite":
-		migrateDriver, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-	default:
-		return fmt.Errorf("unsupported database driver: %s", databaseDriver)
-	}
-	if err != nil {
-		return fmt.Errorf("failed to create migrate instance: %w", err)
+		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	m, err := migrate.NewWithDatabaseInstance(migrationsPath, databaseDriver, migrateDriver)
-	if err != nil {
-		return fmt.Errorf("failed to create migration instance: %w", err)
-	}
-
-	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return fmt.Errorf("failed to run migrations: %w", err)
-	}
-
-	log.Println("Migrations completed successfully")
-	return nil
+	return AutoMigrate(db)
 }
 
 func RollbackMigrations(databaseURL, databaseDriver, migrationsPath string, steps int) error {
-	db, err := sql.Open(databaseDriver, databaseURL)
-	if err != nil {
-		return fmt.Errorf("failed to open database: %w", err)
-	}
-	defer db.Close()
+	_ = databaseURL
+	_ = databaseDriver
+	_ = migrationsPath
+	_ = steps
 
-	var migrateDriver database.Driver
-	switch databaseDriver {
-	case "postgres":
-		migrateDriver, err = postgres.WithInstance(db, &postgres.Config{})
-	case "mysql":
-		migrateDriver, err = mysql.WithInstance(db, &mysql.Config{})
-	case "sqlite":
-		migrateDriver, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-	default:
-		return fmt.Errorf("unsupported database driver: %s", databaseDriver)
-	}
-	if err != nil {
-		return fmt.Errorf("failed to create migrate instance: %w", err)
-	}
-
-	m, err := migrate.NewWithDatabaseInstance(migrationsPath, databaseDriver, migrateDriver)
-	if err != nil {
-		return fmt.Errorf("failed to create migration instance: %w", err)
-	}
-
-	if err := m.Steps(-steps); err != nil {
-		return fmt.Errorf("failed to rollback migrations: %w", err)
-	}
-
-	log.Printf("Rolled back %d migration(s) successfully", steps)
-	return nil
+	return fmt.Errorf("rollback is not supported when using GORM auto-migration")
 }
 
 func GetMigrationVersion(databaseURL, databaseDriver, migrationsPath string) (uint, bool, error) {
-	db, err := sql.Open(databaseDriver, databaseURL)
-	if err != nil {
-		return 0, false, fmt.Errorf("failed to open database: %w", err)
-	}
-	defer db.Close()
+	_ = databaseURL
+	_ = databaseDriver
+	_ = migrationsPath
 
-	var migrateDriver database.Driver
-	switch databaseDriver {
-	case "postgres":
-		migrateDriver, err = postgres.WithInstance(db, &postgres.Config{})
-	case "mysql":
-		migrateDriver, err = mysql.WithInstance(db, &mysql.Config{})
-	case "sqlite":
-		migrateDriver, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-	default:
-		return 0, false, fmt.Errorf("unsupported database driver: %s", databaseDriver)
-	}
-	if err != nil {
-		return 0, false, fmt.Errorf("failed to create migrate instance: %w", err)
+	return 0, false, nil
+}
+
+func AutoMigrate(db *gorm.DB) error {
+	modelsToMigrate := []interface{}{
+		&models.User{},
+		&models.Game{},
+		&models.Language{},
+		&models.Pack{},
+		&models.Rarity{},
+		&models.Storage{},
+		&models.Media{},
+		&models.Card{},
 	}
 
-	m, err := migrate.NewWithDatabaseInstance(migrationsPath, databaseDriver, migrateDriver)
-	if err != nil {
-		return 0, false, fmt.Errorf("failed to create migration instance: %w", err)
+	if err := db.AutoMigrate(modelsToMigrate...); err != nil {
+		return fmt.Errorf("failed to auto-migrate schema: %w", err)
 	}
 
-	version, dirty, err := m.Version()
-	return version, dirty, err
+	log.Println("GORM auto-migration completed successfully")
+	return nil
 }
 
 func CreateDefaultAdmin(db *gorm.DB, email, password string) error {

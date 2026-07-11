@@ -7,15 +7,15 @@ import (
 )
 
 type User struct {
-	ID        uint           `json:"id" gorm:"primaryKey"`
-	Name      string         `json:"name" gorm:"not null;size:100" validate:"required,min=2,max=100"`
-	Email     string         `json:"email" gorm:"uniqueIndex;not null;size:255" validate:"required,email"`
-	Password  string         `json:"-" gorm:"not null;size:255"`
-	Role      string         `json:"role" gorm:"not null;size:50;default:'editor'" validate:"required,oneof=admin editor"`
-	Age       int            `json:"age" gorm:"not null" validate:"required,min=1,max=150"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+	ID        uint           `json:"id" gorm:"column:id;primaryKey"`
+	Name      string         `json:"name" gorm:"column:name;not null;size:100" validate:"required,min=2,max=100"`
+	Email     string         `json:"email" gorm:"column:email;uniqueIndex;not null;size:255" validate:"required,email"`
+	Password  string         `json:"-" gorm:"column:password;not null;size:255"`
+	Role      string         `json:"role" gorm:"column:role;not null;size:50;default:'editor'" validate:"required,oneof=admin editor"`
+	Age       int            `json:"age" gorm:"column:age;not null" validate:"required,min=1,max=150"`
+	CreatedAt time.Time      `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt time.Time      `json:"updated_at" gorm:"column:updated_at"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"column:deleted_at;index"`
 }
 
 type CreateUserRequest struct {

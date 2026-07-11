@@ -1,2 +1,0 @@
-ALTER TABLE cards ADD COLUMN media_id BIGINT;
-ALTER TABLE cards ADD CONSTRAINT fk_cards_media FOREIGN KEY (media_id) REFERENCES media(id) ON DELETE SET NULL;

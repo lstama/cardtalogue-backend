@@ -7,33 +7,33 @@ import (
 )
 
 type Card struct {
-	ID              uint           `json:"id" gorm:"primaryKey"`
-	Code            string         `json:"code" gorm:"not null;size:255" validate:"required,min=1,max=255"`
-	LowercaseCode   string         `json:"lowercase_code" gorm:"not null;size:255;index"` // for case-insensitive search
-	Name            string         `json:"name" gorm:"not null;size:255" validate:"required,min=1,max=255"`
-	LowercaseName   string         `json:"lowercase_name" gorm:"not null;size:255;index"` // for case-insensitive search
-	Price           uint           `json:"price" gorm:"not null;default:100" validate:"min=0,max=1000000000"`
-	PriceMultiplier uint           `json:"price_multiplier" gorm:"not null;default:120" validate:"min=1,max=100000"`
-	Quantity        uint           `json:"quantity" gorm:"not null;default:1" validate:"min=0,max=1000000"`
-	ImageURL        string         `json:"image_url" gorm:"not null;default:https://picsum.photos/230/330.webp" validate:"required,min=1,max=255"`
-	Description     string         `json:"description" gorm:"type:text"`
-	Status          string         `json:"status" gorm:"not null;size:20;default:enabled" validate:"required,oneof=enabled disabled"`
-	ForSale         string         `json:"for_sale" gorm:"not null;size:20;default:'yes'" validate:"required,oneof=yes no"`
-	CreatedAt       time.Time      `json:"created_at"`
-	UpdatedAt       time.Time      `json:"updated_at"`
-	DeletedAt       gorm.DeletedAt `json:"-" gorm:"index"`
-	GameID          uint           `json:"game_id" gorm:"not null"`
-	Game            Game           `json:"game" gorm:"foreignKey:GameID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	LanguageID      uint           `json:"language_id,omitempty" gorm:"not null"`
-	Language        Language       `json:"language,omitempty" gorm:"foreignKey:LanguageID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	PackID          uint           `json:"pack_id,omitempty" gorm:"not null"`
-	Pack            Pack           `json:"pack,omitempty" gorm:"foreignKey:PackID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	RarityID        uint           `json:"rarity_id,omitempty" gorm:"not null;default:1"`
-	Rarity          Rarity         `json:"rarity,omitempty" gorm:"foreignKey:RarityID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	StorageID       uint           `json:"storage_id,omitempty"`
-	Storage         Storage        `json:"storage,omitempty" gorm:"foreignKey:StorageID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	MediaID         *uint          `json:"media_id,omitempty"`
-	Media           *Media         `json:"media,omitempty" gorm:"foreignKey:MediaID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	ID              uint           `json:"id" gorm:"column:id;primaryKey"`
+	Code            string         `json:"code" gorm:"column:code;not null;size:255" validate:"required,min=1,max=255"`
+	LowercaseCode   string         `json:"lowercase_code" gorm:"column:lowercase_code;not null;size:255;index"` // for case-insensitive search
+	Name            string         `json:"name" gorm:"column:name;not null;size:255" validate:"required,min=1,max=255"`
+	LowercaseName   string         `json:"lowercase_name" gorm:"column:lowercase_name;not null;size:255;index"` // for case-insensitive search
+	Price           uint           `json:"price" gorm:"column:price;not null;default:100" validate:"min=0,max=1000000000"`
+	PriceMultiplier uint           `json:"price_multiplier" gorm:"column:price_multiplier;not null;default:120" validate:"min=1,max=100000"`
+	Quantity        uint           `json:"quantity" gorm:"column:quantity;not null;default:1" validate:"min=0,max=1000000"`
+	ImageURL        string         `json:"image_url" gorm:"column:image_url;not null;default:https://picsum.photos/230/330.webp" validate:"required,min=1,max=255"`
+	Description     string         `json:"description" gorm:"column:description;type:text"`
+	Status          string         `json:"status" gorm:"column:status;not null;size:20;default:enabled" validate:"required,oneof=enabled disabled"`
+	ForSale         string         `json:"for_sale" gorm:"column:for_sale;not null;size:20;default:'yes'" validate:"required,oneof=yes no"`
+	CreatedAt       time.Time      `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt       time.Time      `json:"updated_at" gorm:"column:updated_at"`
+	DeletedAt       gorm.DeletedAt `json:"-" gorm:"column:deleted_at;index"`
+	GameID          uint           `json:"game_id" gorm:"column:game_id;not null"`
+	Game            Game           `json:"game" gorm:"column:game_id;foreignKey:GameID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	LanguageID      uint           `json:"language_id,omitempty" gorm:"column:language_id;not null"`
+	Language        Language       `json:"language,omitempty" gorm:"column:language_id;foreignKey:LanguageID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	PackID          uint           `json:"pack_id,omitempty" gorm:"column:pack_id;not null"`
+	Pack            Pack           `json:"pack,omitempty" gorm:"column:pack_id;foreignKey:PackID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	RarityID        uint           `json:"rarity_id,omitempty" gorm:"column:rarity_id;not null;default:1"`
+	Rarity          Rarity         `json:"rarity,omitempty" gorm:"column:rarity_id;foreignKey:RarityID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	StorageID       uint           `json:"storage_id,omitempty" gorm:"column:storage_id"`
+	Storage         Storage        `json:"storage,omitempty" gorm:"column:storage_id;foreignKey:StorageID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	MediaID         *uint          `json:"media_id,omitempty" gorm:"column:media_id"`
+	Media           *Media         `json:"media,omitempty" gorm:"column:media_id;foreignKey:MediaID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 type CreateCardRequest struct {

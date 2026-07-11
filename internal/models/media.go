@@ -5,13 +5,13 @@ import (
 )
 
 type Media struct {
-	ID          uint      `json:"id" gorm:"primaryKey"`
-	URL         string    `json:"url" gorm:"not null;default:https://picsum.photos/230/330.webp" validate:"required,min=1,max=255"`
-	Description string    `json:"description" gorm:"type:text"`
-	Status      string    `json:"status" gorm:"not null;size:20;default:pending" validate:"required,oneof=pending attached archived disabled"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	Provider    string    `json:"provider" gorm:"not null"`
+	ID          uint      `json:"id" gorm:"column:id;primaryKey"`
+	URL         string    `json:"url" gorm:"column:url;not null;default:https://picsum.photos/230/330.webp" validate:"required,min=1,max=255"`
+	Description string    `json:"description" gorm:"column:description;type:text"`
+	Status      string    `json:"status" gorm:"column:status;not null;size:20;default:pending" validate:"required,oneof=pending attached archived disabled"`
+	CreatedAt   time.Time `json:"created_at" gorm:"column:created_at"`
+	UpdatedAt   time.Time `json:"updated_at" gorm:"column:updated_at"`
+	Provider    string    `json:"provider" gorm:"column:provider;not null"`
 }
 
 type CreateMediaRequest struct {

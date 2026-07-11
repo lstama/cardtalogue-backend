@@ -1,8 +1,9 @@
-.PHONY: build run test clean migrate migrate-up migrate-down migrate-create migrate-version help delete-db up-db
+.PHONY: build build-migrate run start test clean dev-setup docker-up docker-down db-up db-down migrate-up migrate-down migrate-rollback migrate-create migrate-version migrate-force help fmt lint install fill-sample delete-db delete-db-docker
 
 # Variables
 BINARY_NAME=cardtalogue-backend
-DATABASE_URL=postgres://user:password@localhost:5432/dbname?sslmode=disable
+DATABASE_DRIVER ?= sqlite
+DATABASE_URL ?= file:./data.db
 MIGRATIONS_PATH=migrations
 
 # Default target
@@ -14,15 +15,17 @@ help: ## Show this help message
 
 build: ## Build the application
 	@echo "Building..."
-	@go build -o bin/$(BINARY_NAME) cmd/api/main.go
+	@go build -o bin/$(BINARY_NAME) ./cmd/api
 
-build-migrate: ## Build the application
-	@echo "Building..."
-	@go build -o bin/migrate cmd/migrate/main.go
+build-migrate: ## Build the migration helper
+	@echo "Building migration helper..."
+	@go build -o bin/migrate ./cmd/migrate
 
-run: ## Run the application
-	@echo "Running application..."
-	@go run cmd/api/main.go
+run: ## Run the application (schema is auto-synced on startup)
+	@echo "Starting application..."
+	@DATABASE_URL="$(DATABASE_URL)" DATABASE_DRIVER="$(DATABASE_DRIVER)" go run ./cmd/api
+
+start: docker-up run ## Start the database and application
 
 test: ## Run tests
 	@echo "Running tests..."
@@ -38,38 +41,25 @@ clean: ## Clean build files
 	@rm -rf bin/
 	@rm -f coverage.out
 
-# Database Migration Commands
-migrate-up: ## Run all migrations
-	@echo "Running migrations..."
-	@go run cmd/migrate/main.go up
+# Database schema sync
+migrate-up: ## Sync schema with GORM (this happens automatically on startup)
+	@echo "Schema sync is handled automatically by GORM on startup."
+	@echo "Run 'make run' or 'make start' to launch the API."
 
-migrate-down: ## Rollback last migration
-	@echo "Rolling back last migration..."
-	@go run cmd/migrate/main.go down 1
+migrate-down: ## Rollback is not used with GORM auto-migration
+	@echo "Rollback is not used with GORM auto-migration."
 
-migrate-rollback: ## Rollback specific number of migrations (usage: make migrate-rollback STEPS=2)
-	@echo "Rolling back $(or $(STEPS),1) migration(s)..."
-	@go run cmd/migrate/main.go down $(or $(STEPS),1)
+migrate-rollback: ## Rollback specific number of migrations (not used with GORM auto-migration)
+	@echo "Rollback is not used with GORM auto-migration."
 
-migrate-create: ## Create new migration file (usage: make migrate-create NAME=add_user_status)
-	@if [ -z "$(NAME)" ]; then \
-		echo "Please provide a name: make migrate-create NAME=your_migration_name"; \
-		exit 1; \
-	fi
-	@echo "Creating migration: $(NAME)"
-	@go run cmd/migrate/main.go create $(NAME)
+migrate-create: ## Create a new model change instead of a SQL migration file
+	@echo "GORM auto-migration uses your Go models. Update the model struct and rerun the API."
 
-migrate-version: ## Show current migration version
-	@echo "Current migration version:"
-	@go run cmd/migrate/main.go version
+migrate-version: ## Show current migration version (not used with GORM auto-migration)
+	@echo "GORM auto-migration does not use versioned migration files."
 
-migrate-force: ## Force migration version (usage: make migrate-force VERSION=1)
-	@if [ -z "$(VERSION)" ]; then \
-		echo "Please provide a version: make migrate-force VERSION=1"; \
-		exit 1; \
-	fi
-	@echo "Forcing migration version to $(VERSION)..."
-	@go run cmd/migrate/main.go force $(VERSION)
+migrate-force: ## Force migration version (not used with GORM auto-migration)
+	@echo "GORM auto-migration does not use versioned migration files."
 
 # Development
 dev-setup: ## Setup development environment
@@ -77,7 +67,7 @@ dev-setup: ## Setup development environment
 	@go mod download
 	@go mod tidy
 
-docker-up: ## Start database with docker-compose
+docker-up: ## Start database with docker compose
 	@echo "Starting database..."
 	@docker compose up -d postgres
 
@@ -97,7 +87,7 @@ lint: ## Run linter
 # Installation
 install: ## Install the binary
 	@echo "Installing..."
-	@go install cmd/api/main.go
+	@go install ./cmd/api
 
 fill-sample:
 	@PGPASSWORD=password psql -h 172.17.0.1 -U user -d dbname -a -f sample-data/initialize.sql
@@ -110,5 +100,8 @@ delete-db-docker:
 	@docker ps --format "{{.ID}}" --filter "name=postgres" | xargs docker rm -f
 	@docker volume rm -f cardtalogue-backend_postgres_data
 
-up-db:
-	@podman-compose up -d postgres
+db-up: docker-up
+
+db-down: docker-down
+
+up-db: docker-up
