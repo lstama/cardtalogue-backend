@@ -1,10 +1,13 @@
-.PHONY: build build-migrate run start test clean dev-setup docker-up docker-down db-up db-down migrate-up migrate-down migrate-rollback migrate-create migrate-version migrate-force help fmt lint install fill-sample delete-db delete-db-docker
+.PHONY: build build-migrate run start test clean dev-setup docker-up docker-down db-up db-down migrate-up migrate-down migrate-rollback migrate-create migrate-version migrate-force help fmt lint install fill-sample delete-db delete-db-docker image image-arm64
 
 # Variables
 BINARY_NAME=cardtalogue-backend
 DATABASE_DRIVER ?= sqlite
 DATABASE_URL ?= file:./data.db
 MIGRATIONS_PATH=migrations
+IMAGE_REPO ?= registry.tama.id:30500/cardtalogue-backend
+IMAGE_TAG ?= arm64
+IMAGE_NAME ?= $(IMAGE_REPO):$(IMAGE_TAG)
 
 # Default target
 help: ## Show this help message
@@ -16,6 +19,12 @@ help: ## Show this help message
 build: ## Build the application
 	@echo "Building..."
 	@go build -o bin/$(BINARY_NAME) ./cmd/api
+
+image: ## Build the container image locally with buildx
+	@echo "Building image $(IMAGE_NAME)..."
+	docker buildx build --platform linux/arm64 --load -t $(IMAGE_NAME) .
+
+image-arm64: image ## Alias for the arm64 image build
 
 build-migrate: ## Build the migration helper
 	@echo "Building migration helper..."
