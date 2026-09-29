@@ -21,6 +21,8 @@ type Config struct {
 	APIBaseURL           string
 	MediaUploadPath      string
 	CardScanAPIURL       string
+	CapURL               string
+	CapSecret            string
 }
 
 func Load() *Config {
@@ -51,6 +53,8 @@ func Load() *Config {
 		APIBaseURL:           getEnv("API_BASE_URL", "http://localhost:"+getEnv("PORT", "8080")),
 		MediaUploadPath:      getEnv("MEDIA_UPLOAD_PATH", "./uploads/media"),
 		CardScanAPIURL:       getEnv("CARD_SCAN_API_URL", "http://172.17.0.4:5000/api/recognize"),
+		CapURL:               getEnv("CAP_URL", ""),
+		CapSecret:            getEnv("CAP_SECRET", ""),
 	}
 }
 

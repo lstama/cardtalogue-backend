@@ -115,6 +115,8 @@ func main() {
 		mediaHandler,
 		cfg.JWTSecret,
 		cfg.FrontendHosts,
+		cfg.CapURL,
+		cfg.CapSecret,
 	)
 
 	// Start server
@@ -134,6 +136,8 @@ func setupRouter(
 	mediaHandler *handlers.MediaHandler,
 	jwtSecret string,
 	frontendHosts []string,
+	capURL string,
+	capSecret string,
 ) *gin.Engine {
 	router := gin.Default()
 
@@ -148,7 +152,7 @@ func setupRouter(
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     frontendHosts,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "X-Cap-Token"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
@@ -204,6 +208,15 @@ func setupRouter(
 		v1.GET("/rarities", rarityHandler.GetRarities)
 		v1.GET("rarities/:id", rarityHandler.GetRarity)
 		v1.GET("/rarities/search", rarityHandler.SearchRarities)
+
+		// Public but with Proof of Work Captcha middleware
+		publicCap := v1.Group("")
+		{
+			publicMedia := publicCap.Group("/media")
+			{
+				publicMedia.POST("/scan", middleware.CapVerify(capURL, capSecret), mediaHandler.ScanImage)
+			}
+		}
 
 		// Protected routes
 		protected := v1.Group("")

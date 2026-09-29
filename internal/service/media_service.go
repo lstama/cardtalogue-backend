@@ -17,7 +17,7 @@ type MediaService interface {
 	DeleteMedia(id uint) error
 	DeletePendingMedia() error
 	DeleteOldPendingMedia(minutes int) error
-	// ScanImage(file *multipart.FileHeader) (*models.CardScanResponse, error)
+	ScanImage(file *multipart.FileHeader) (*models.CardScanResponse, error)
 }
 
 type mediaService struct {
@@ -90,21 +90,21 @@ func (s *mediaService) UploadImage(file *multipart.FileHeader, baseURL, uploadPa
 	return response, scanResult, nil
 }
 
-// func (s *mediaService) ScanImage(file *multipart.FileHeader) (*models.CardScanResponse, error) {
-// 	if ValidateImage(file, 5*1024*1024) != nil {
-// 		return nil, errors.New("invalid image file")
-// 	}
+func (s *mediaService) ScanImage(file *multipart.FileHeader) (*models.CardScanResponse, error) {
+	if ValidateImage(file, 5*1024*1024) != nil {
+		return nil, errors.New("invalid image file")
+	}
 
-// 	var response *models.CardScanResponse
-// 	if s.recognitionSvc != nil {
-// 		scanData, err := s.recognitionSvc.RecognizeCard(file)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("card recognition failed: %w", err)
-// 		}
-// 		response = scanData
-// 	}
-// 	return response, nil
-// }
+	var response *models.CardScanResponse
+	if s.recognitionSvc != nil {
+		scanData, err := s.recognitionSvc.RecognizeCard(file)
+		if err != nil {
+			return nil, fmt.Errorf("card recognition failed: %w", err)
+		}
+		response = scanData
+	}
+	return response, nil
+}
 
 func (s *mediaService) GetMedia(id uint) (*models.Media, error) {
 	return s.mediaRepo.GetByID(id)
