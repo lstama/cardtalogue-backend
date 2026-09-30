@@ -2,3 +2,8 @@ bin/
 .env
 .envrealuploads/
 *.jpeg
+*.png
+*.db
+data.db
+*.db
+data.db

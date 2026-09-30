@@ -145,27 +145,3 @@ func (a *authServiceValidator) ValidateToken(tokenString string) (*jwt.Token, er
 		return []byte(a.jwtSecret), nil
 	})
 }
-
-func CapVerify(capURL, secret string) gin.HandlerFunc {
-	client := &http.Client{Timeout: 5 * time.Second}
-	return func(c *gin.Context) {
-		token := c.GetHeader("X-Cap-Token")
-		if token == "" {
-			c.AbortWithStatusJSON(400, gin.H{"error": "captcha required"})
-			return
-		}
-		body, _ := json.Marshal(map[string]string{"secret": secret, "response": token})
-		resp, err := client.Post(capURL+"/siteverify", "application/json", bytes.NewReader(body))
-		if err != nil {
-			c.AbortWithStatusJSON(502, gin.H{"error": "captcha unavailable"})
-			return
-		}
-		defer resp.Body.Close()
-		var r struct{ Success bool `json:"success"` }
-		if json.NewDecoder(resp.Body).Decode(&r) != nil || !r.Success {
-			c.AbortWithStatusJSON(403, gin.H{"error": "captcha failed"})
-			return
-		}
-		c.Next()
-	}
-}

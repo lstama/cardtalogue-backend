@@ -8,6 +8,7 @@ MIGRATIONS_PATH=migrations
 IMAGE_REPO ?= registry.tama.id:30500/cardtalogue-backend
 IMAGE_TAG ?= arm64
 IMAGE_NAME ?= $(IMAGE_REPO):$(IMAGE_TAG)
+CARD_SCAN_API_URL=http://172.17.0.4:5000/api/recognize # check the real local IP first, use localhost if the app is run locally from outside container 
 
 # Default target
 help: ## Show this help message
@@ -32,7 +33,7 @@ build-migrate: ## Build the migration helper
 
 run: ## Run the application (schema is auto-synced on startup)
 	@echo "Starting application..."
-	@DATABASE_URL="$(DATABASE_URL)" DATABASE_DRIVER="$(DATABASE_DRIVER)" go run ./cmd/api
+	@DATABASE_URL="$(DATABASE_URL)" DATABASE_DRIVER="$(DATABASE_DRIVER)" CARD_SCAN_API_URL="$(CARD_SCAN_API_URL)"  go run ./cmd/api
 
 start: docker-up run ## Start the database and application
 

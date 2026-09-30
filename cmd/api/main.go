@@ -101,6 +101,7 @@ func main() {
 	rarityHandler := handlers.NewRarityHandler(rarityService)
 	storageHandler := handlers.NewStorageHandler(storageService)
 	mediaHandler := handlers.NewMediaHandler(mediaService, cfg)
+	verifier := middleware.NewVerifier(cfg.CaptchaMode, cfg.Environment, cfg.CapURL, cfg.CapSecret)
 
 	// Setup router
 	router := setupRouter(
@@ -113,10 +114,9 @@ func main() {
 		rarityHandler,
 		storageHandler,
 		mediaHandler,
+		verifier,
 		cfg.JWTSecret,
 		cfg.FrontendHosts,
-		cfg.CapURL,
-		cfg.CapSecret,
 	)
 
 	// Start server
@@ -134,10 +134,9 @@ func setupRouter(
 	rarityHandler *handlers.RarityHandler,
 	storageHandler *handlers.StorageHandler,
 	mediaHandler *handlers.MediaHandler,
+	verifier middleware.Verifier,
 	jwtSecret string,
 	frontendHosts []string,
-	capURL string,
-	capSecret string,
 ) *gin.Engine {
 	router := gin.Default()
 
@@ -214,7 +213,7 @@ func setupRouter(
 		{
 			publicMedia := publicCap.Group("/media")
 			{
-				publicMedia.POST("/scan", middleware.CapVerify(capURL, capSecret), mediaHandler.ScanImage)
+				publicMedia.POST("/scan", middleware.RequireCaptcha(verifier), mediaHandler.ScanImage)
 			}
 		}
 
