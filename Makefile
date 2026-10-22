@@ -8,7 +8,7 @@ MIGRATIONS_PATH=migrations
 IMAGE_REPO ?= registry.tama.id:30500/cardtalogue-backend
 IMAGE_TAG ?= arm64
 IMAGE_NAME ?= $(IMAGE_REPO):$(IMAGE_TAG)
-CARD_SCAN_API_URL=http://172.17.0.4:5000/api/recognize # check the real local IP first, use localhost if the app is run locally from outside container 
+CARD_SCAN_API_URL=http://172.17.0.3:5000/api/recognize # check the real local IP first, use localhost if the app is run locally from outside container 
 
 # Default target
 help: ## Show this help message

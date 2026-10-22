@@ -31,7 +31,7 @@ func Load() *Config {
 	// Load .env file if it exists
 	_ = godotenv.Load()
 
-	frontendHosts := strings.Split(getEnv("FRONTEND_HOSTS", "http://localhost:3000,http://127.0.0.1:3000,http://172.17.0.1:3000"), ",")
+	frontendHosts := strings.Split(getEnv("FRONTEND_HOSTS", "http://localhost:3000,http://127.0.0.1:3000,http://172.17.0.1:3000,http://100.64.0.4:3000"), ",")
 
 	environment := getEnv("ENVIRONMENT", "development")
 	var sec bool
