@@ -15,6 +15,18 @@ Onboard as new backend engineer: understand how to change the DB schema/models i
 - Schema source of truth = Go structs in `internal/models/`. `cmd/api/main.go` calls `RunMigrations` on every start -> `AutoMigrate` over a fixed 8-model list. `migrations/` is empty and `MIGRATIONS_PATH` is ignored.
 - Rollback: NOT possible automatically. `RollbackMigrations` hard-errors; Makefile migrate targets are echo stubs; no version tracking. Only manual SQL or destructive DB reset.
 
+## CVE fix (govulncheck)
+- Installed `govulncheck` (CGO_ENABLED=0 to avoid sandbox cgo /usr/include perm denial). Scanned `./...`.
+- Fixed 12 direct vulns across 4 modules by bumping in go.mod, then `go mod tidy`:
+  - golang.org/x/text v0.37.0 -> v0.42.0 (GO-2026-6629, GO-2026-5970)
+  - golang.org/x/net v0.54.0 -> v0.60.0 (GO-2026-6617/6612/6611/6610/6603)
+  - github.com/quic-go/quic-go v0.54.0 -> v0.59.1 (GO-2026-5676, GO-2025-4233)
+  - github.com/jackc/pgx/v5 v5.6.0 -> v5.9.2 (GO-2026-5004 SQL injection)
+  - golang.org/x/crypto v0.52.0 -> v0.57.0 (pulled by x/net)
+  - filippo.io/edwards25519 v1.1.0 -> v1.1.1 (GO-2026-4503, transitive via pgx)
+- Rescan: 0 vulnerabilities in code. Build passes (`go build -buildvcs=false ./...`).
+- Remaining: GO-2026-5932 in golang.org/x/crypto@v0.57.0 -> "Fixed in: N/A" (no patch exists; not called by code). No action possible.
+
 ## Next steps
 - Plan is written but NOT implemented. Implementation order is in `agent/PLAN.md` §5 (12 steps: .gitkeep -> .env -> volume -> sqlite3 driver name -> baseline SQL -> single DB lifecycle -> FK pragma+test -> gate AutoMigrate -> real migrate CLI -> recipes -> snapshots -> tests/CI).
 - User answered Q1: an existing deployment exists -> `agent/PLAN-POSTGRES.md` Part 1 supersedes the `PLAN.md` §5 order.
