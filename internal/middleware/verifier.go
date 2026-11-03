@@ -12,6 +12,7 @@ import (
 )
 
 type Verifier interface {
+	Enabled() bool
 	Verify(ctx context.Context, token string) (bool, error)
 }
 
@@ -35,6 +36,8 @@ type capVerifier struct {
 	client      *http.Client
 }
 
+func (v *capVerifier) Enabled() bool { return true }
+
 func (v *capVerifier) Verify(ctx context.Context, token string) (bool, error) {
 	body, _ := json.Marshal(map[string]string{"secret": v.secret, "response": token})
 	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, v.url+"/siteverify", bytes.NewReader(body))
@@ -55,10 +58,16 @@ func (v *capVerifier) Verify(ctx context.Context, token string) (bool, error) {
 
 type noopVerifier struct{}
 
+func (noopVerifier) Enabled() bool { return false }
+
 func (noopVerifier) Verify(context.Context, string) (bool, error) { return true, nil }
 
 func RequireCaptcha(v Verifier) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if !v.Enabled() {
+			c.Next()
+			return
+		}
 		token := c.GetHeader("X-Cap-Token")
 		if token == "" {
 			c.AbortWithStatusJSON(400, gin.H{"error": "captcha required"})
