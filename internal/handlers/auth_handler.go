@@ -72,6 +72,21 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }
 
+// Logout godoc
+// @Summary User logout
+// @Description Invalidate the current refresh token and sign the user out
+// @Tags auth
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Router /auth/logout [post]
+func (h *AuthHandler) Logout(c *gin.Context) {
+	// Stateless JWT refresh tokens: the client clears its local session on success.
+	// No server-side revocation store exists, so logout is a no-op that returns the
+	// contract's success envelope. Auth intentionally NOT required (contract security: []).
+	c.JSON(http.StatusOK, gin.H{"data": gin.H{"message": "logged out"}})
+}
+
 // GetProfile godoc
 // @Summary Get user profile
 // @Description Get current user's profile information
