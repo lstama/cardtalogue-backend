@@ -32,7 +32,7 @@ func NewVerifier(captchaMode string, appEnv string, capUrl string, capSecret str
 }
 
 type capVerifier struct {
-	url, secret string // url includes the site key: https://cap.tama.id/<site-key>
+	url, secret string // url includes the site key: https://captcha.example.com/<site-key>
 	client      *http.Client
 }
 
