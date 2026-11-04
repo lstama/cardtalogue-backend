@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/lstama/cardtalogue-backend/internal/config"
 	"github.com/lstama/cardtalogue-backend/internal/database"
@@ -160,6 +161,12 @@ func setupRouter(
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
+	// Contract validation is OPT-IN (API_CONTRACT_VALIDATE=1). When unset it is a
+	// no-op passthrough, so enabling it never changes default runtime behavior.
+	if os.Getenv(middleware.EnvContractValidate) == "1" {
+		router.Use(middleware.ContractValidation())
+	}
+
 	// Health Check godoc
 	// @Summary Health check endpoint
 	// @Description Check if the API is running
@@ -185,6 +192,7 @@ func setupRouter(
 		{
 			auth.POST("/login", authHandler.Login)
 			auth.POST("/refresh", authHandler.RefreshToken)
+			auth.POST("/logout", authHandler.Logout)
 		}
 
 		// Public cards endpoint (optional auth)

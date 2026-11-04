@@ -1,0 +1,13 @@
+# oapi-codegen v2 configuration for the Cardtalogue backend contract.
+# Regenerate with: make generate   (uses this file + the spec as positional arg)
+# Do NOT edit generated code by hand — edit this config and regenerate.
+#
+# Field names follow oapi-codegen v2's Configuration/GenerateOptions structs:
+#   models        -> type definitions
+#   gin-server    -> Gin server interface + wrapper (the backend uses Gin)
+#   strict-server -> strict server wrapper (for the future strict-server refactor)
+package: gen
+generate:
+  models: true
+  gin-server: true
+  strict-server: true

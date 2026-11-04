@@ -1,4 +1,4 @@
-.PHONY: build build-migrate run start test clean dev-setup docker-up docker-down db-up db-down migrate-up migrate-down migrate-rollback migrate-create migrate-version migrate-force help fmt lint install fill-sample delete-db delete-db-docker image image-arm64
+.PHONY: build build-migrate run start test clean dev-setup docker-up docker-down db-up db-down migrate-up migrate-down migrate-rollback migrate-create migrate-version migrate-force help fmt lint install fill-sample delete-db delete-db-docker image image-arm64 sync-contract generate verify-contract
 
 # Variables
 BINARY_NAME=cardtalogue-backend
@@ -115,3 +115,46 @@ db-up: docker-up
 db-down: docker-down
 
 up-db: docker-up
+
+# --- API contract -----------------------------------------------------------
+# The backend consumes the pinned contract from the sibling cardtalogue-api-contract
+# repo. CONTRACT_PATH overrides the source (defaults to the sibling repo).
+# Local dev override: CONTRACT_PATH=../cardtalogue-api-contract make generate
+CONTRACT_VERSION := $(shell cat CONTRACT_VERSION 2>/dev/null)
+CONTRACT_PATH ?= ../cardtalogue-api-contract
+BACKEND_CONTRACT := $(CONTRACT_PATH)/contracts/backend.yaml
+GEN_DIR := internal/api/gen
+
+# oapi-codegen lives in GOPATH/bin; put it on PATH so `make generate` works
+# without manual PATH setup.
+export PATH := $(shell go env GOPATH)/bin:$(PATH)
+
+sync-contract: ## Copy the pinned contract into internal/api/gen/backend.yaml
+	@if [ -n "$(CONTRACT_PATH)" ] && [ -f "$(BACKEND_CONTRACT)" ]; then \
+		cp "$(BACKEND_CONTRACT)" "$(GEN_DIR)/backend.yaml"; \
+		echo "  synced $(GEN_DIR)/backend.yaml from $(CONTRACT_PATH) (v$(CONTRACT_VERSION))"; \
+	else \
+		echo "CONTRACT_PATH=$(CONTRACT_PATH) not found; fetch tag v$(CONTRACT_VERSION) manually"; \
+		exit 1; \
+	fi
+
+generate: ## Regenerate Go types + Gin/strict server interface from the contract
+	@if [ ! -f "$(GEN_DIR)/backend.yaml" ]; then \
+		echo "backend.yaml missing; run 'make sync-contract' first"; exit 1; \
+	fi
+	oapi-codegen -o $(GEN_DIR)/openapi.go -config $(GEN_DIR)/oapi-codegen.yaml $(GEN_DIR)/backend.yaml
+
+verify-contract: ## Regenerate and confirm the committed code is in sync
+	@if [ ! -f "$(GEN_DIR)/backend.yaml" ]; then \
+		echo "backend.yaml missing; run 'make sync-contract' first"; exit 1; \
+	fi
+	@cp $(GEN_DIR)/openapi.go /tmp/openapi.verify.$$
+	oapi-codegen -o $(GEN_DIR)/openapi.go -config $(GEN_DIR)/oapi-codegen.yaml $(GEN_DIR)/backend.yaml
+	@if diff -q /tmp/openapi.verify.$$ $(GEN_DIR)/openapi.go >/dev/null 2>&1; then \
+		echo "verify-contract: OK (generated code in sync with contract)"; \
+	else \
+		echo "verify-contract: FAIL — committed openapi.go is out of sync; run 'make generate'"; \
+		diff /tmp/openapi.verify.$$ $(GEN_DIR)/openapi.go | head; \
+		exit 1; \
+	fi
+	rm -f /tmp/openapi.verify.$$

@@ -1,0 +1,2086 @@
+openapi: 3.1.0
+info:
+  title: Cardtalogue Backend API
+  description: |
+    Contract for the Cardtalogue Go/Gin backend. This is a snapshot of current behavior (see DISCREPANCIES.md in the parent repo). The frontend adopts the subset of these endpoints it calls; the full surface is documented here.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local
+security:
+  - bearerAuth: []
+tags:
+  - name: auth
+    description: Authentication
+  - name: cards
+    description: Card catalog
+  - name: protected-cards
+    description: Authenticated user's own cards
+  - name: games
+    description: Game definitions
+  - name: languages
+    description: Language definitions
+  - name: packs
+    description: Pack definitions
+  - name: rarities
+    description: Rarity definitions
+  - name: storages
+    description: User storages
+  - name: users
+    description: User management
+  - name: media
+    description: Media upload / scan
+paths:
+  /health:
+    get:
+      tags:
+        - media
+      security: []
+      summary: Health check
+      description: "Check backend health and readiness."
+      operationId: health
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+        '503':
+          $ref: '#/components/responses/ServerError'
+  /auth/login:
+    post:
+      tags:
+        - auth
+      security: []
+      summary: Log in
+      description: "Authenticate a user with email and password, returning access and refresh tokens."
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /auth/refresh:
+    post:
+      tags:
+        - auth
+      security: []
+      summary: Refresh access token
+      description: "Exchange a valid refresh token for a new access token."
+      operationId: refresh
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /auth/logout:
+    post:
+      tags:
+        - auth
+      security: []
+      summary: Invalidate the refresh token (read from X-Refresh-Token header)
+      description: "Invalidate the current refresh token and sign the user out."
+      operationId: logout
+      responses:
+        '200':
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: logged out
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /cards:
+    get:
+      tags:
+        - cards
+      summary: List cards
+      description: "List cards, with optional filtering, pagination, and sorting."
+      operationId: getCards
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardResponse'
+          description: 200 response
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags:
+        - cards
+      summary: Create a card (owner)
+      description: "Create a new card in a game."
+      operationId: createCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCardRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /cards/search:
+    get:
+      tags:
+        - cards
+      summary: Search cards
+      description: "Search cards by name or code within a game."
+      operationId: searchCards
+      parameters:
+        - name: game_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: uint32
+        - name: language_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: uint32
+        - name: pack_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: uint32
+        - name: query
+          in: query
+          required: false
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardResponse'
+          description: 200 response
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /cards/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - cards
+      summary: Get a card by id
+      description: "Retrieve a single card by id."
+      operationId: getCardById
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags:
+        - cards
+      summary: Update a card (owner)
+      description: "Update a card owned by the authenticated user."
+      operationId: updateCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCardRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /cards/protected:
+    get:
+      tags:
+        - protected-cards
+      summary: List the authenticated user's cards
+      description: "List cards including protected fields for authorized callers."
+      operationId: getProtectedCards
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardProtectedResponse'
+          description: 200 response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /cards/protected/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - protected-cards
+      summary: Get one of the authenticated user's cards
+      description: "Retrieve a single card including protected fields for authorized callers."
+      operationId: getProtectedCardById
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardProtectedResponse'
+          description: 200 response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - protected-cards
+      summary: Update one of the authenticated user's cards
+      description: "Update a protected card owned by the authenticated user."
+      operationId: updateProtectedCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCardRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardProtectedResponse'
+          description: 200 response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /games:
+    get:
+      tags:
+        - games
+      summary: List games
+      description: "List games."
+      operationId: getGames
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GameResponse'
+          description: 200 response
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags:
+        - games
+      summary: Create a game (owner)
+      description: "Create a new game."
+      operationId: createGame
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGameRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /games/search:
+    get:
+      tags:
+        - games
+      summary: Search games
+      description: "Search games by name."
+      operationId: searchGames
+      parameters:
+        - name: query
+          in: query
+          required: false
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GameResponse'
+          description: 200 response
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /games/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - games
+      summary: Get a game by id
+      description: "Retrieve a single game by id."
+      operationId: getGameById
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags:
+        - games
+      summary: Update a game (owner)
+      description: "Update a game."
+      operationId: updateGame
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGameRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - games
+      summary: Delete a game (owner)
+      description: "Delete a game and its associated cards."
+      operationId: deleteGame
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /languages:
+    get:
+      tags:
+        - languages
+      summary: List languages
+      description: "List languages."
+      operationId: getLanguages
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LanguageResponse'
+          description: 200 response
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags:
+        - languages
+      summary: Create a language (owner)
+      description: "Create a new language."
+      operationId: createLanguage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLanguageRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LanguageResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /languages/search:
+    get:
+      tags:
+        - languages
+      summary: Search languages
+      description: "Search languages by name or code."
+      operationId: searchLanguages
+      parameters:
+        - name: query
+          in: query
+          required: false
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LanguageResponse'
+          description: 200 response
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /languages/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - languages
+      summary: Get a language by id
+      description: "Retrieve a single language by id."
+      operationId: getLanguageById
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LanguageResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags:
+        - languages
+      summary: Update a language (owner)
+      description: "Update a language."
+      operationId: updateLanguage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLanguageRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LanguageResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - languages
+      summary: Delete a language (owner)
+      description: "Delete a language."
+      operationId: deleteLanguage
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /packs:
+    get:
+      tags:
+        - packs
+      summary: List packs
+      description: "List packs, with optional filtering, pagination, and sorting."
+      operationId: getPacks
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PackResponse'
+          description: 200 response
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags:
+        - packs
+      summary: Create a pack (owner)
+      description: "Create a new pack."
+      operationId: createPack
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePackRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /packs/search:
+    get:
+      tags:
+        - packs
+      summary: Search packs
+      description: "Search packs by name."
+      operationId: searchPacks
+      parameters:
+        - name: game_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: uint32
+        - name: language_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: uint32
+        - name: query
+          in: query
+          required: false
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PackResponse'
+          description: 200 response
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /packs/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - packs
+      summary: Get a pack by id
+      description: "Retrieve a single pack by id."
+      operationId: getPackById
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags:
+        - packs
+      summary: Update a pack (owner)
+      description: "Update a pack."
+      operationId: updatePack
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePackRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - packs
+      summary: Delete a pack (owner)
+      description: "Delete a pack."
+      operationId: deletePack
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /rarities:
+    get:
+      tags:
+        - rarities
+      summary: List rarities
+      description: "List rarities, with optional filtering, pagination, and sorting."
+      operationId: getRarities
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RarityResponse'
+          description: 200 response
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags:
+        - rarities
+      summary: Create a rarity (owner)
+      description: "Create a new rarity."
+      operationId: createRarity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRarityRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RarityResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /rarities/search:
+    get:
+      tags:
+        - rarities
+      summary: Search rarities
+      description: "Search rarities by name."
+      operationId: searchRarities
+      parameters:
+        - name: query
+          in: query
+          required: false
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RarityResponse'
+          description: 200 response
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /rarities/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - rarities
+      summary: Get a rarity by id
+      description: "Retrieve a single rarity by id."
+      operationId: getRarityById
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RarityResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      tags:
+        - rarities
+      summary: Update a rarity (owner)
+      description: "Update a rarity."
+      operationId: updateRarity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRarityRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RarityResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - rarities
+      summary: Delete a rarity (owner)
+      description: "Delete a rarity."
+      operationId: deleteRarity
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /storages:
+    get:
+      tags:
+        - storages
+      summary: List the authenticated user's storages
+      description: "List the authenticated user's storages."
+      operationId: getStorages
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StorageResponse'
+          description: 200 response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags:
+        - storages
+      summary: Create a storage (owner)
+      description: "Create a new storage for the authenticated user."
+      operationId: createStorage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStorageRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /storages/search:
+    get:
+      tags:
+        - storages
+      summary: Search the authenticated user's storages
+      description: "Search the user's storages by name."
+      operationId: searchStorages
+      parameters:
+        - name: query
+          in: query
+          required: false
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StorageResponse'
+          description: 200 response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /storages/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - storages
+      summary: Get one of the authenticated user's storages
+      description: "Retrieve a single storage by id."
+      operationId: getStorageById
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageResponse'
+          description: 200 response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - storages
+      summary: Update one of the authenticated user's storages
+      description: "Update a storage owned by the authenticated user."
+      operationId: updateStorage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStorageRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - storages
+      summary: Delete one of the authenticated user's storages
+      description: "Delete a storage owned by the authenticated user."
+      operationId: deleteStorage
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /users:
+    get:
+      tags:
+        - users
+      summary: List users
+      description: "List users, with optional filtering, pagination, and sorting."
+      operationId: getUsers
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+          description: 200 response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      tags:
+        - users
+      summary: Create a user (owner)
+      description: "Create a new user."
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - users
+      summary: Get a user by id
+      description: "Retrieve a single user by id."
+      operationId: getUserById
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+          description: 200 response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - users
+      summary: Update a user (owner)
+      description: "Update a user."
+      operationId: updateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - users
+      summary: Delete a user (owner)
+      description: "Operation: deleteUser."
+      operationId: deleteUser
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /media/scan:
+    post:
+      tags:
+        - media
+      security:
+        - bearerAuth: []
+      summary: |
+        Recognize a card from an uploaded image. Requires a valid JWT and a CAPTCHA token (X-Cap-Token) when CAPTCHA_MODE=on. Multipart field: file.
+      description: "Upload an image and return card matches with confidence scores."
+      operationId: scanMedia
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaScanResponse'
+          description: 200 response
+        '400':
+          description: Bad request (missing file / captcha)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          description: Image too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /media/upload:
+    post:
+      tags:
+        - media
+      summary: |
+        Upload an image. Multipart field: file. Optional query param also_scan=true triggers recognition and returns matches.
+      description: "Upload an image and return its metadata."
+      operationId: uploadMedia
+      parameters:
+        - name: also_scan
+          in: query
+          required: false
+          schema:
+            type: boolean
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaUploadResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          description: Image too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /media/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags:
+        - media
+      summary: Get media by id
+      description: "Retrieve a single media file by id."
+      operationId: getMediaById
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaResponse'
+          description: 200 response
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - media
+      summary: Update media (owner)
+      description: "Update a media file owned by the authenticated user."
+      operationId: updateMedia
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMediaRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaResponse'
+          description: 200 response
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - media
+      summary: Delete media (owner)
+      description: "Delete a media file owned by the authenticated user."
+      operationId: deleteMedia
+      responses:
+        '200':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access token from POST /auth/login, sent in the Authorization header.
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: Page size (default 100, max 1000)
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 1000
+        default: 100
+    Offset:
+      name: offset
+      in: query
+      required: false
+      description: Pagination offset (default 0)
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+    Id:
+      name: id
+      in: path
+      required: true
+      description: Numeric resource id
+      schema:
+        type: integer
+        format: uint32
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+      examples:
+        - error: "media not found"
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    LoginResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserResponse'
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+      examples:
+        - user:
+            $ref: '#/components/schemas/UserResponse'
+          access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example"
+          refresh_token: "0a1b2c3d4e5f60718293a4b5c6d7e8f9"
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+    RefreshTokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint32
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - admin
+            - editor
+        age:
+          type: integer
+          minimum: 1
+          maximum: 150
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      examples:
+        - id: 1
+          name: "Alice"
+          email: "alice@example.com"
+          role: editor
+          age: 30
+          created_at: "2024-01-01T00:00:00Z"
+          updated_at: "2024-06-01T00:00:00Z"
+    CreateUserRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role
+        - age
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 100
+        role:
+          type: string
+          enum:
+            - admin
+            - editor
+        age:
+          type: integer
+          minimum: 1
+          maximum: 150
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - admin
+            - editor
+        age:
+          type: integer
+          minimum: 1
+          maximum: 150
+    GameResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint32
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      examples:
+        - id: 1
+          name: "Yu-Gi-Oh!"
+          created_at: "2024-01-01T00:00:00Z"
+          updated_at: "2024-01-01T00:00:00Z"
+    CreateGameRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+    UpdateGameRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+    LanguageResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint32
+        code:
+          type: string
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreateLanguageRequest:
+      type: object
+      required:
+        - name
+        - code
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        code:
+          type: string
+          minLength: 1
+          maxLength: 255
+    UpdateLanguageRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        code:
+          type: string
+          minLength: 1
+          maxLength: 255
+    PackResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint32
+        code:
+          type: string
+        name:
+          type: string
+        image_url:
+          type: string
+        description:
+          type: string
+        game_id:
+          type: integer
+          format: uint32
+        game_name:
+          type: string
+        language_id:
+          type: integer
+          format: uint32
+        language_name:
+          type: string
+        language_code:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreatePackRequest:
+      type: object
+      required:
+        - code
+        - name
+        - image_url
+        - game_id
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 255
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        image_url:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+        game_id:
+          type: integer
+          format: uint32
+          minimum: 1
+        language_id:
+          type: integer
+          format: uint32
+          minimum: 1
+    UpdatePackRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 255
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        image_url:
+          type: string
+          minLength: 1
+          maxLength: 255
+        status:
+          type: string
+          enum:
+            - enabled
+            - disabled
+        game_id:
+          type: integer
+          format: uint32
+          minimum: 1
+        language_id:
+          type: integer
+          format: uint32
+          minimum: 1
+    RarityResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint32
+        code:
+          type: string
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreateRarityRequest:
+      type: object
+      required:
+        - name
+        - code
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        code:
+          type: string
+          minLength: 1
+          maxLength: 255
+    UpdateRarityRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        code:
+          type: string
+          minLength: 1
+          maxLength: 255
+    StorageResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint32
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreateStorageRequest:
+      type: object
+      required:
+        - name
+        - code
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        code:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+    UpdateStorageRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        code:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+    CardResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint32
+        code:
+          type: string
+        name:
+          type: string
+        price:
+          type: integer
+          format: uint32
+        price_multiplier:
+          type: integer
+          format: uint32
+        quantity:
+          type: integer
+          format: uint32
+        image_url:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+            - enabled
+            - disabled
+        for_sale:
+          type: string
+          enum:
+            - 'yes'
+            - 'no'
+        game_id:
+          type: integer
+          format: uint32
+        game_name:
+          type: string
+        language_id:
+          type: integer
+          format: uint32
+        language_name:
+          type: string
+        language_code:
+          type: string
+        pack_id:
+          type: integer
+          format: uint32
+        pack_name:
+          type: string
+        pack_code:
+          type: string
+        rarity_id:
+          type: integer
+          format: uint32
+        rarity_name:
+          type: string
+        rarity_code:
+          type: string
+        media_id:
+          type: integer
+          format: uint32
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      examples:
+        - id: 1
+          code: "12345678"
+          name: "Dark Magician"
+          price: 3000
+          price_multiplier: 1
+          quantity: 100
+          owner_id: 1
+          game_id: 1
+          pack_id: null
+          rarity_id: null
+          is_protected: false
+          rarity_name: "Normal"
+          rarity_code: "N"
+          media_id: null
+          created_at: "2024-01-01T00:00:00Z"
+          updated_at: "2024-06-01T00:00:00Z"
+    CardProtectedResponse:
+      allOf:
+        - $ref: '#/components/schemas/CardResponse'
+        - type: object
+          properties:
+            storage_id:
+              type: integer
+              format: uint32
+            storage_name:
+              type: string
+            storage_code:
+              type: string
+    CreateCardRequest:
+      type: object
+      required:
+        - code
+        - name
+        - game_id
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 255
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        price:
+          type: integer
+          format: uint32
+          minimum: 0
+          maximum: 1000000000
+        price_multiplier:
+          type: integer
+          format: uint32
+          minimum: 1
+          maximum: 100000
+        quantity:
+          type: integer
+          format: uint32
+          minimum: 0
+          maximum: 1000000
+        image_url:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+            - enabled
+            - disabled
+        for_sale:
+          type: string
+          enum:
+            - 'yes'
+            - 'no'
+        game_id:
+          type: integer
+          format: uint32
+          minimum: 1
+        language_id:
+          type: integer
+          format: uint32
+          minimum: 1
+        pack_id:
+          type: integer
+          format: uint32
+          minimum: 1
+        rarity_id:
+          type: integer
+          format: uint32
+          minimum: 1
+        storage_id:
+          type: integer
+          format: uint32
+          minimum: 1
+        media_id:
+          type: integer
+          format: uint32
+          minimum: 1
+    UpdateCardRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 255
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        price:
+          type: integer
+          format: uint32
+          minimum: 0
+          maximum: 1000000000
+        price_multiplier:
+          type: integer
+          format: uint32
+          minimum: 1
+          maximum: 100000
+        quantity:
+          type: integer
+          format: uint32
+          minimum: 0
+          maximum: 1000000
+        image_url:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+            - enabled
+            - disabled
+        for_sale:
+          type: string
+          enum:
+            - 'yes'
+            - 'no'
+        game_id:
+          type: integer
+          format: uint32
+          minimum: 1
+        language_id:
+          type: integer
+          format: uint32
+          minimum: 1
+        pack_id:
+          type: integer
+          format: uint32
+          minimum: 1
+        rarity_id:
+          type: integer
+          format: uint32
+          minimum: 1
+        storage_id:
+          type: integer
+          format: uint32
+          minimum: 1
+        media_id:
+          type: integer
+          format: uint32
+          minimum: 1
+    MediaResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint32
+        url:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+            - pending
+            - attached
+            - archived
+            - disabled
+        provider:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    UpdateMediaRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+            - pending
+            - attached
+            - archived
+            - disabled
+        provider:
+          type: string
+          minLength: 1
+          maxLength: 255
+    MediaUploadResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: uint32
+        url:
+          type: string
+    MediaScanMatch:
+      type: object
+      properties:
+        name:
+          type: string
+        confidence:
+          type: number
+          format: float
+        konami_id:
+          type: string
+        detail:
+          type: object
+          properties:
+            monster_effect:
+              type: string
+            pendulum_effect:
+              type: string
+            effect:
+              type: string
+      examples:
+        - name: "Crossout Designator"
+          confidence: 0.26
+          konami_id: "81838198"
+          detail:
+            monster_effect: ""
+            pendulum_effect: ""
+            effect: "DARK"
+    MediaScanResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        matches:
+          type: array
+          items:
+            $ref: '#/components/schemas/MediaScanMatch'
+        processing_time:
+          type: number
+          format: float
+      examples:
+        - success: true
+          matches:
+            - name: "Crossout Designator"
+              confidence: 0.26
+              konami_id: "81838198"
+              detail:
+                monster_effect: ""
+                pendulum_effect: ""
+                effect: "DARK"
+          processing_time: 0.42
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized (missing/invalid token)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden (not the owner)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

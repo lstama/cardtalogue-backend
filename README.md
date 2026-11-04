@@ -1,309 +1,147 @@
-# CRUD API with Authentication and Role-Based Access Control
+# Cardtalogue Backend
 
-A comprehensive CRUD API built with Go, featuring authentication, role-based authorization, database migrations, and clean architecture.
+Go + [Gin](https://gin-gonic.com/) HTTP API for the Cardtalogue card-management platform.
+This service owns card, pack, game, language, rarity, storage, user, and media data, and is the
+single source of truth the frontend consumes.
 
-## Features
+## Design
 
-- 🔐 JWT-based Authentication & Authorization
-- 👥 Role-based Access Control (Admin & Editor)
-- 🏗️ Clean Architecture (Handler -> Service -> Repository pattern)
-- 🗄️ Database migrations with up/down support
-- 📝 CRUD operations for Users and Items
-- ✅ Input validation
-- 🚀 RESTful API design
-- 📊 Pagination support
-- 🐳 Docker support for database
-- 🧪 Comprehensive error handling
-- 📝 Structured logging
+- **Contract-first.** The API is authored as an OpenAPI 3.0 document in
+  [`contracts/backend.yaml`](https://github.com/lstama/cardtalogue-api-contract/blob/master/contracts/backend.yaml).
+  Handlers, models, and client stubs are generated from that contract with
+  [`oapi-codegen`](https://github.com/oapi-codegen/oapi-codegen). The contract is the spec; this
+  repo is one implementation of it.
+- **Storage.** SQLite by default (zero external services). Postgres is supported via
+  `docker-compose.yml` when `DATABASE_URL` points at a Postgres instance.
+- **Auth & RBAC.** JWT bearer tokens (`Authorization: Bearer <token>`). Roles: `admin`, `editor`,
+  `viewer`. Authenticated endpoints enforce roles via `RequireRole`; some read endpoints are public
+  or require only a valid token.
+- **Validation.** A generated contract-validation middleware rejects requests/responses that
+  violate the OpenAPI schema.
 
-## User Roles & Permissions
+## Endpoints
 
-### Admin
-- ✅ Create, read, update, delete users
-- ✅ Create, read, update, delete items
-- ✅ Full access to all endpoints
+Base path: `/api/v1`.
 
-### Editor  
-- ✅ Create, read, update items
-- ✅ Can disable items (status: disabled)
-- ❌ Cannot delete items (only admins can)
-- ❌ Cannot manage users
+| Group | Methods | Auth | Notes |
+| --- | --- | --- | --- |
+| `/auth/login`, `/auth/refresh`, `/auth/logout` | POST | public | Issue / rotate / revoke tokens. |
+| `/cards`, `/cards/:id`, `/cards/search` | GET | token | Read cards. |
+| `/cards` (POST), `/cards/:id` (PUT/DELETE) | — | editor / admin | Create / update / delete. Delete is admin-only. |
+| `/cards/protected`, `/cards/protected/:id` | GET | editor + | Sensitive read view. |
+| `/games`, `/languages`, `/packs`, `/rarities` | GET/POST/PUT/DELETE | token / editor / admin | Reference-data CRUD. |
+| `/storages` | GET/POST/PUT/DELETE | token / editor / admin | Storage CRUD. |
+| `/users` | GET/POST/PUT/DELETE | admin | User management. |
+| `/profile`, `/profile/password` | GET/PUT | token | Current-user profile. |
+| `/media/upload` | POST | editor / admin | Upload card images. |
+| `/media/:filename` | GET | public | Serve stored media. |
+| `/media/scan` | POST | captcha (proof-of-work) | Trigger ORB card scan (see the [scanner repo](https://github.com/lstama/cardtalogue-yugioh-scanner)). |
+| `/health` | GET | public | Liveness. |
+| `/swagger/*any` | — | public | Interactive Swagger UI for the contract. |
 
-### Public
-- ✅ View items list (no authentication required)
+## Prerequisites
 
-## Default Admin Account
+- Go 1.24+
+- (Optional) Docker, for the Postgres option
+- (Optional) `oapi-codegen` for regenerating code from the contract
 
-The system automatically creates a default admin account:
-- **Email**: admin@example.com
-- **Password**: admin123
-- **Role**: admin
-
-**⚠️ IMPORTANT**: Change the default password after first login!
-
-## API Endpoints
-
-### Authentication
-
-#### Login
-```http
-POST /api/v1/auth/login
-Content-Type: application/json
-
-{
-  "email": "admin@example.com",
-  "password": "admin123"
-}
-```
-
-**Response:**
-```json
-{
-  "data": {
-    "user": {
-      "id": 1,
-      "name": "Administrator",
-      "email": "admin@example.com",
-      "role": "admin",
-      "age": 30
-    },
-    "access_token": "eyJhbGciOiJIUzI1NiIs...",
-    "refresh_token": "eyJhbGciOiJIUzI1NiIs..."
-  }
-}
-```
-
-#### Refresh Token
-```http
-POST /api/v1/auth/refresh
-Content-Type: application/json
-
-{
-  "refresh_token": "eyJhbGciOiJIUzI1NiIs..."
-}
-```
-
-#### Get Profile
-```http
-GET /api/v1/profile
-Authorization: Bearer <access_token>
-```
-
-#### Change Password
-```http
-PUT /api/v1/profile/password
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-{
-  "current_password": "admin123",
-  "new_password": "newpassword123"
-}
-```
-
-### User Management (Admin Only)
-
-#### Create User
-```http
-POST /api/v1/users
-Authorization: Bearer <admin_token>
-Content-Type: application/json
-
-{
-  "name": "John Editor",
-  "email": "john@example.com",
-  "password": "password123",
-  "role": "editor",
-  "age": 30
-}
-```
-
-#### Get All Users
-```http
-GET /api/v1/users?limit=20&offset=0
-Authorization: Bearer <admin_token>
-```
-
-#### Get User by ID
-```http
-GET /api/v1/users/{id}
-Authorization: Bearer <admin_token>
-```
-
-#### Update User
-```http
-PUT /api/v1/users/{id}
-Authorization: Bearer <admin_token>
-Content-Type: application/json
-
-{
-  "name": "John Updated",
-  "role": "admin"
-}
-```
-
-#### Delete User
-```http
-DELETE /api/v1/users/{id}
-Authorization: Bearer <admin_token>
-```
-
-### Items Management
-
-#### Get All Items (Public - No Auth Required)
-```http
-GET /api/v1/items?limit=20&offset=0
-```
-
-#### Get Item by ID (Authenticated Users)
-```http
-GET /api/v1/items/{id}
-Authorization: Bearer <access_token>
-```
-
-#### Create Item (Editor/Admin)
-```http
-POST /api/v1/items
-Authorization: Bearer <editor_or_admin_token>
-Content-Type: application/json
-
-{
-  "name": "Sample Item",
-  "description": "This is a sample item",
-  "status": "enabled"
-}
-```
-
-#### Update Item (Editor/Admin)
-```http
-PUT /api/v1/items/{id}
-Authorization: Bearer <editor_or_admin_token>
-Content-Type: application/json
-
-{
-  "name": "Updated Item",
-  "description": "Updated description",
-  "status": "disabled"
-}
-```
-
-#### Delete Item (Admin Only)
-```http
-DELETE /api/v1/items/{id}
-Authorization: Bearer <admin_token>
-```
-
-## Quick Start
-
-### 1. Clone and Setup
-```bash
-git clone <repository>
-cd cardtalogue-backend
-cp .env.example .env  # Edit with your configuration
-```
-
-### 2. Start Database
-```bash
-make docker-up
-```
-
-### 3. Install Dependencies
-```bash
-make dev-setup
-```
-
-### 4. Run Migrations
-```bash
-make migrate-up
-```
-
-### 5. Start Application
-```bash
-make run
-```
-
-The API will be available at `http://localhost:8080`
-
-## Authentication Flow
-
-1. **Login** with email/password to get access and refresh tokens
-2. **Include Bearer token** in Authorization header for protected endpoints
-3. **Refresh token** when access token expires
-4. **Change password** as needed through the profile endpoint
-
-## Example Usage Flow
+## Quick start (SQLite)
 
 ```bash
-# 1. Login as admin
-curl -X POST http://localhost:8080/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@example.com","password":"admin123"}'
+# 1. Copy the environment template and set a real JWT secret.
+cp .env.example .env
+#    Edit .env: change JWT_SECRET (and the default admin credentials if you like).
 
-# 2. Create an editor user (save the token from step 1)
-curl -X POST http://localhost:8080/api/v1/users \
-  -H "Authorization: Bearer <admin_token>" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"John Editor","email":"john@example.com","password":"password123","role":"editor","age":25}'
+# 2. Apply migrations and seed reference data.
+go run ./cmd/migrate
 
-# 3. Create an item (can be done by editor or admin)
-curl -X POST http://localhost:8080/api/v1/items \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Test Item","description":"A test item","status":"enabled"}'
-
-# 4. View items (public endpoint - no auth needed)
-curl http://localhost:8080/api/v1/items
-
-# 5. Editor can disable an item
-curl -X PUT http://localhost:8080/api/v1/items/1 \
-  -H "Authorization: Bearer <editor_token>" \
-  -H "Content-Type: application/json" \
-  -d '{"status":"disabled"}'
-
-# 6. Only admin can delete items
-curl -X DELETE http://localhost:8080/api/v1/items/1 \
-  -H "Authorization: Bearer <admin_token>"
+# 3. Run the server.
+go run ./cmd/api
 ```
 
-## Database Schema
+The server listens on `:8080` by default (override with `PORT`).
 
-### Users Table
-- `id` - Primary key
-- `name` - User's full name
-- `email` - Unique email address
-- `password` - Hashed password
-- `role` - admin or editor
-- `age` - User's age
-- `created_at`, `updated_at`, `deleted_at` - Timestamps
+Swagger UI: <http://localhost:8080/swagger>
 
-### Items Table  
-- `id` - Primary key
-- `name` - Item name
-- `description` - Item description
-- `status` - enabled or disabled
-- `created_at`, `updated_at`, `deleted_at` - Timestamps
+### Creating the first admin
 
-## Security Features
+The seed inserts a default admin (`ADMIN_EMAIL` / `ADMIN_PASSWORD` from `.env`, default
+`admin@example.com` / `admin123`). **Change these before any non-local deployment.** Log in at
+`POST /api/v1/auth/login` with email + password to obtain a JWT.
 
-- ✅ Password hashing with bcrypt
-- ✅ JWT tokens with expiration
-- ✅ Role-based access control
-- ✅ Input validation
-- ✅ SQL injection protection via GORM
-- ✅ Soft deletes
+## Docker (Postgres) option
 
-## Contributing
+```bash
+# Override credentials via the environment (they are NOT hardcoded at runtime).
+export POSTGRES_USER=cardtalogue
+export POSTGRES_PASSWORD=change-me
+export POSTGRES_DB=cardtalogue
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+docker compose up -d postgres
+# Point the API at Postgres:
+export DATABASE_URL="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}?sslmode=disable"
+go run ./cmd/migrate
+go run ./cmd/api
+```
+
+`POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` in `docker-compose.yml` are read from the
+environment with safe defaults — do not commit real values.
+
+## Environment variables
+
+See [`.env.example`](.env.example) for the full list. Key variables:
+
+- `JWT_SECRET` — **must** be a long random string in any real deployment.
+- `ADMIN_EMAIL` / `ADMIN_PASSWORD` — seed admin credentials (dev only).
+- `DATABASE_URL` — leave unset for SQLite; set to a `postgres://` URL for Postgres.
+- `PORT` — listen port (default `8080`).
+
+## How to run
+
+```bash
+cp .env.example .env          # set a real JWT_SECRET (and default admin creds if you like)
+go run ./cmd/migrate          # migrations + seed reference data
+go run ./cmd/api              # server on :8080, Swagger at http://localhost:8080/swagger
+```
+
+SQLite by default (no external services). For Postgres, see [Docker (Postgres) option](#docker-postgres-option).
+
+## How to contribute
+
+This repo is **contract-first** — the API lives in the [contract repo](https://github.com/lstama/cardtalogue-api-contract),
+not here. To change the API:
+
+1. Edit `contracts/backend.yaml` in the contract repo, bump `CONTRACT_VERSION`.
+2. `make generate` here (syncs the pinned contract and regenerates local types/docs).
+3. `make test` plus the breaking-change check, then open a PR.
+
+See [Contract-first workflow](#contract-first-workflow) for the full details.
+
+## Contract-first workflow
+
+This repo consumes the shared contract. To change the API:
+
+1. Edit the OpenAPI document in the [contract repo's `contracts/backend.yaml`](https://github.com/lstama/cardtalogue-api-contract/blob/master/contracts/backend.yaml).
+2. Bump `CONTRACT_VERSION` in that repo and run its `make generate` to regenerate shared types.
+3. Rebuild this repo (`go mod tidy` if the generated types changed), then regenerate local docs:
+   `swag init` (or `make docs`).
+4. Run `make test` and the breaking-change check before merging.
+
+See [`cardtalogue-api-contract/README.md`](https://github.com/lstama/cardtalogue-api-contract/blob/master/README.md) for details.
+
+## Development
+
+```bash
+make lint      # staticcheck + go vet
+make test      # go test ./...
+make docs      # regenerate swagger docs from annotations
+make generate  # (contract repo) regenerate shared types from the OpenAPI doc
+```
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+Licensed under the GNU General Public License v3.0. See [LICENSE](LICENSE).
 
-TODO:
-
-Nothing for now
+Yu-Gi-Oh! card names, descriptions, and related data are used for identification and reference
+purposes only. Yu-Gi-Oh! is a trademark of Konami Group Corporation. This project does not
+distribute card images; image URLs are placeholders.

@@ -112,10 +112,10 @@ func (s *authService) RefreshToken(refreshToken string) (*models.RefreshTokenRes
 
 func (s *authService) ValidateToken(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return s.publicKey, nil
+		return []byte(s.jwtSecret), nil
 	})
 
 	if err != nil {
