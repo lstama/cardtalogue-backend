@@ -7,7 +7,7 @@ single source of truth the frontend consumes.
 ## Design
 
 - **Contract-first.** The API is authored as an OpenAPI 3.0 document in
-  [`cardtalogue-api-contract/contracts/backend/openapi.yaml`](../cardtalogue-api-contract/contracts/backend/openapi.yaml).
+  [`contracts/backend.yaml`](https://github.com/lstama/cardtalogue-api-contract/blob/master/contracts/backend.yaml).
   Handlers, models, and client stubs are generated from that contract with
   [`oapi-codegen`](https://github.com/oapi-codegen/oapi-codegen). The contract is the spec; this
   repo is one implementation of it.
@@ -35,7 +35,7 @@ Base path: `/api/v1`.
 | `/profile`, `/profile/password` | GET/PUT | token | Current-user profile. |
 | `/media/upload` | POST | editor / admin | Upload card images. |
 | `/media/:filename` | GET | public | Serve stored media. |
-| `/media/scan` | POST | captcha (proof-of-work) | Trigger ORB card scan (see scanner repo). |
+| `/media/scan` | POST | captcha (proof-of-work) | Trigger ORB card scan (see the [scanner repo](https://github.com/lstama/cardtalogue-yugioh-scanner)). |
 | `/health` | GET | public | Liveness. |
 | `/swagger/*any` | — | public | Interactive Swagger UI for the contract. |
 
@@ -96,17 +96,38 @@ See [`.env.example`](.env.example) for the full list. Key variables:
 - `DATABASE_URL` — leave unset for SQLite; set to a `postgres://` URL for Postgres.
 - `PORT` — listen port (default `8080`).
 
+## How to run
+
+```bash
+cp .env.example .env          # set a real JWT_SECRET (and default admin creds if you like)
+go run ./cmd/migrate          # migrations + seed reference data
+go run ./cmd/api              # server on :8080, Swagger at http://localhost:8080/swagger
+```
+
+SQLite by default (no external services). For Postgres, see [Docker (Postgres) option](#docker-postgres-option).
+
+## How to contribute
+
+This repo is **contract-first** — the API lives in the [contract repo](https://github.com/lstama/cardtalogue-api-contract),
+not here. To change the API:
+
+1. Edit `contracts/backend.yaml` in the contract repo, bump `CONTRACT_VERSION`.
+2. `make generate` here (syncs the pinned contract and regenerates local types/docs).
+3. `make test` plus the breaking-change check, then open a PR.
+
+See [Contract-first workflow](#contract-first-workflow) for the full details.
+
 ## Contract-first workflow
 
 This repo consumes the shared contract. To change the API:
 
-1. Edit the OpenAPI document in `cardtalogue-api-contract/contracts/backend/openapi.yaml`.
+1. Edit the OpenAPI document in the [contract repo's `contracts/backend.yaml`](https://github.com/lstama/cardtalogue-api-contract/blob/master/contracts/backend.yaml).
 2. Bump `CONTRACT_VERSION` in that repo and run its `make generate` to regenerate shared types.
 3. Rebuild this repo (`go mod tidy` if the generated types changed), then regenerate local docs:
    `swag init` (or `make docs`).
 4. Run `make test` and the breaking-change check before merging.
 
-See [`cardtalogue-api-contract/README.md`](../cardtalogue-api-contract/README.md) for details.
+See [`cardtalogue-api-contract/README.md`](https://github.com/lstama/cardtalogue-api-contract/blob/master/README.md) for details.
 
 ## Development
 
