@@ -1,0 +1,15 @@
+# Prometheus configuration for Cardtalogue backend.
+# Scrapes the API's OTel /metrics endpoint. The API also ships an OTLP
+# exporter (OTEL_METRICS_EXPORTER=otlp) that can push directly to a collector
+# if preferred; this file covers the pull model via the /metrics endpoint.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "cardtalogue-backend"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api:9090"]
+        labels:
+          service: cardtalogue-backend

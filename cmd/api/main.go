@@ -1,25 +1,31 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
+	"github.com/lstama/cardtalogue-backend/internal/api/gen"
 	"github.com/lstama/cardtalogue-backend/internal/config"
 	"github.com/lstama/cardtalogue-backend/internal/database"
 	"github.com/lstama/cardtalogue-backend/internal/handlers"
+	"github.com/lstama/cardtalogue-backend/internal/logging"
 	"github.com/lstama/cardtalogue-backend/internal/middleware"
+	"github.com/lstama/cardtalogue-backend/internal/otel"
 	"github.com/lstama/cardtalogue-backend/internal/repository"
 	"github.com/lstama/cardtalogue-backend/internal/service"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 
 	_ "github.com/lstama/cardtalogue-backend/docs"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-
-	"github.com/penglongli/gin-metrics/ginmetrics"
 )
 
 // @title           Card Catalogue API
@@ -46,10 +52,38 @@ func main() {
 	// Load configuration
 	cfg := config.Load()
 
-	// Initialize database
-	db, err := database.NewConnection(cfg.DatabaseURL, cfg.DatabaseDriver)
+	// Structured logging (slog), driven by LOG_FORMAT / LOG_LEVEL.
+	logger := logging.New(*cfg)
+
+	// Initialize OpenTelemetry (tracer + meter providers). When exporters are
+	// set to "none" the providers are no-ops but instrumentation still runs.
+	otelProvider, otelCleanup, err := otel.Init(context.Background(), *cfg, logger)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		logger.Error("otel: initialization failed", "error", err)
+		os.Exit(1)
+	}
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := otelCleanup(ctx); err != nil {
+			logger.Warn("otel: shutdown failed", "error", err)
+		}
+	}()
+
+	// Initialize database. For MySQL, route the connection through the OTel
+	// instrumented driver so queries produce spans + metrics.
+	var dbConn gorm.ConnPool
+	if cfg.DatabaseDriver == "mysql" {
+		dbConn, err = otel.InstrumentMySQLConn(otelProvider.Tracer, otelProvider.Meter, cfg.DatabaseURL)
+		if err != nil {
+			logger.Error("database: instrumented connection failed", "error", err)
+			os.Exit(1)
+		}
+	}
+	db, err := database.NewConnectionWithConn(cfg.DatabaseURL, cfg.DatabaseDriver, dbConn)
+	if err != nil {
+		logger.Error("database: connection failed", "error", err)
+		os.Exit(1)
 	}
 	defer database.Close(db)
 
@@ -92,74 +126,86 @@ func main() {
 		mediaService = service.NewMediaService(mediaRepo)
 	}
 
-	// Initialize handlers
-	authHandler := handlers.NewAuthHandler(authService, cfg)
-	userHandler := handlers.NewUserHandler(userService)
-	cardHandler := handlers.NewCardHandler(cardService)
-	gameHandler := handlers.NewGameHandler(gameService)
-	languageHandler := handlers.NewLanguageHandler(languageService)
-	packHandler := handlers.NewPackHandler(packService)
-	rarityHandler := handlers.NewRarityHandler(rarityService)
-	storageHandler := handlers.NewStorageHandler(storageService)
-	mediaHandler := handlers.NewMediaHandler(mediaService, cfg)
-	verifier := middleware.NewVerifier(cfg.CaptchaMode, cfg.Environment, cfg.CapURL, cfg.CapSecret)
-
-	// Setup router
+	// Setup router using the contract-first strict handler.
 	router := setupRouter(
-		authHandler,
-		userHandler,
-		cardHandler,
-		gameHandler,
-		languageHandler,
-		packHandler,
-		rarityHandler,
-		storageHandler,
-		mediaHandler,
-		verifier,
-		cfg.JWTSecret,
-		cfg.FrontendHosts,
+		otelProvider,
+		cfg,
+		&handlers.Services{
+			Auth:      authService,
+			Users:     userService,
+			Games:     gameService,
+			Languages: languageService,
+			Packs:     packService,
+			Rarities:  rarityService,
+			Storages:  storageService,
+			Media:     mediaService,
+			Cards:     cardService,
+		},
 	)
 
-	// Start server
-	log.Printf("Server starting on port %s", cfg.Port)
-	log.Fatal(http.ListenAndServe(":"+cfg.Port, router))
+	// Start server with graceful shutdown.
+	logger.Info("server starting", "port", cfg.Port, "environment", cfg.Environment)
+	server := &http.Server{
+		Addr:    ":" + cfg.Port,
+		Handler: router,
+	}
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Error("server stopped", "error", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shut down.
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+	<-stop
+
+	logger.Info("shutting down server")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := server.Shutdown(ctx); err != nil {
+		logger.Warn("server forced to shutdown", "error", err)
+	}
+}
+
+// otelHandler returns the Prometheus /metrics handler from the otel provider,
+// falling back to a minimal 200 handler when instrumentation is disabled.
+func otelHandler(p *otel.Provider) http.Handler {
+	if p == nil {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("# metrics disabled\n"))
+		})
+	}
+	return p.MetricsHandler()
 }
 
 func setupRouter(
-	authHandler *handlers.AuthHandler,
-	userHandler *handlers.UserHandler,
-	cardHandler *handlers.CardHandler,
-	gameHandler *handlers.GameHandler,
-	languageHandler *handlers.LanguageHandler,
-	packHandler *handlers.PackHandler,
-	rarityHandler *handlers.RarityHandler,
-	storageHandler *handlers.StorageHandler,
-	mediaHandler *handlers.MediaHandler,
-	verifier middleware.Verifier,
-	jwtSecret string,
-	frontendHosts []string,
+	otelProvider *otel.Provider,
+	cfg *config.Config,
+	services *handlers.Services,
 ) *gin.Engine {
-	router := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
+	router.Use(gin.Logger(), gin.Recovery())
 
-	// Add metrics (this is the only addition)
-	m := ginmetrics.GetMonitor()
-	m.SetMetricPath("/metrics")
-	m.SetSlowTime(10)                              // Log slow requests (>10s)
-	m.SetDuration([]float64{0.1, 0.3, 1.2, 5, 10}) // Histogram buckets
-	m.Use(router)
+	// OpenTelemetry instrumentation. HTTP middleware records server spans and
+	// per-route request metrics; the OTel Prometheus registry serves /metrics.
+	if otelProvider != nil {
+		router.Use(otel.HTTPMiddleware(otelProvider.Tracer, otelProvider.ServiceName))
+		router.Use(otel.HTTPMetricsMiddleware(otelProvider.Meter))
+	}
+	router.GET("/metrics", gin.WrapH(otelHandler(otelProvider)))
 
 	// CORS configuration
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     frontendHosts,
+		AllowOrigins:     cfg.FrontendHosts,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "X-Cap-Token"},
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type", "X-Cap-Token", "captcha-response"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
-
-	// Middleware
-	router.Use(gin.Logger())
-	router.Use(gin.Recovery())
 
 	// Contract validation is OPT-IN (API_CONTRACT_VALIDATE=1). When unset it is a
 	// no-op passthrough, so enabling it never changes default runtime behavior.
@@ -167,150 +213,20 @@ func setupRouter(
 		router.Use(middleware.ContractValidation())
 	}
 
-	// Health Check godoc
-	// @Summary Health check endpoint
-	// @Description Check if the API is running
-	// @Tags System
-	// @Produce json
-	// @Success 200 {object} map[string]string
-	// @Router /health [get]
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "healthy"})
-	})
+	// Contract-first strict handler wiring: generated routes + per-operation auth middleware.
+	shared := handlers.NewShared(services, cfg)
+	ginStrict := gen.NewStrictHandlerWithOptions(
+		shared,
+		[]gen.StrictMiddlewareFunc{shared.AuthMiddleware()},
+		gen.StrictGinServerOptions{},
+	)
+	api := router.Group("/api/v1")
+	gen.RegisterHandlersWithOptions(api, ginStrict, gen.GinServerOptions{BaseURL: ""})
 
-	// Media serving routes (public)
-	router.GET("/media/:filename", mediaHandler.ServeMedia)
-
-	// API routes
-	v1 := router.Group("/api/v1")
-	{
-		// Optional auth middleware for public endpoints that need to differentiate authenticated/unauthenticated users
-		v1.Use(middleware.OptionalJWTAuth(jwtSecret))
-
-		// Public routes
-		auth := v1.Group("/auth")
-		{
-			auth.POST("/login", authHandler.Login)
-			auth.POST("/refresh", authHandler.RefreshToken)
-			auth.POST("/logout", authHandler.Logout)
-		}
-
-		// Public cards endpoint (optional auth)
-		v1.GET("/cards", cardHandler.GetCards)
-		v1.GET("cards/:id", cardHandler.GetCard)
-		v1.GET("/cards/search", cardHandler.SearchCards)
-		// Public games endpoint (optional auth)
-		v1.GET("/games", gameHandler.GetGames)
-		v1.GET("games/:id", gameHandler.GetGame)
-		v1.GET("/games/search", gameHandler.SearchGames)
-		// Public languages endpoint (optional auth)
-		v1.GET("/languages", languageHandler.GetLanguages)
-		v1.GET("languages/:id", languageHandler.GetLanguage)
-		v1.GET("/languages/search", languageHandler.SearchLanguages)
-		// Public packs endpoint (optional auth)
-		v1.GET("/packs", packHandler.GetPacks)
-		v1.GET("packs/:id", packHandler.GetPack)
-		v1.GET("/packs/search", packHandler.SearchPacks)
-		// Public rarities endpoint (optional auth)
-		v1.GET("/rarities", rarityHandler.GetRarities)
-		v1.GET("rarities/:id", rarityHandler.GetRarity)
-		v1.GET("/rarities/search", rarityHandler.SearchRarities)
-
-		// Public but with Proof of Work Captcha middleware
-		publicCap := v1.Group("")
-		{
-			publicMedia := publicCap.Group("/media")
-			{
-				publicMedia.POST("/scan", middleware.RequireCaptcha(verifier), mediaHandler.ScanImage)
-			}
-		}
-
-		// Protected routes
-		protected := v1.Group("")
-		protected.Use(middleware.JWTAuth(jwtSecret))
-		{
-			// User management (Admin only)
-			users := protected.Group("/users")
-			users.Use(middleware.RequireRole("admin"))
-			{
-				users.POST("", userHandler.CreateUser)
-				users.GET("", userHandler.GetUsers)
-				users.GET("/:id", userHandler.GetUser)
-				users.PUT("/:id", userHandler.UpdateUser)
-				users.DELETE("/:id", userHandler.DeleteUser)
-			}
-
-			// Profile management
-			protected.GET("/profile", authHandler.GetProfile)
-			protected.PUT("/profile/password", authHandler.ChangePassword)
-
-			// Cards management
-			cards := protected.Group("/cards")
-			{
-				// Editors and Admins can get protected data
-				cards.GET("/protected", middleware.RequireRole("editor", "admin"), cardHandler.GetCardsProtected)
-				cards.GET("/protected/:id", middleware.RequireRole("editor", "admin"), cardHandler.GetCardProtected)
-
-				// Editors and Admins can create and update
-				cards.POST("", middleware.RequireRole("editor", "admin"), cardHandler.CreateCard)
-				cards.PUT("/:id", middleware.RequireRole("editor", "admin"), cardHandler.UpdateCard)
-				cards.PUT("/protected/:id", middleware.RequireRole("editor", "admin"), cardHandler.UpdateCard)
-
-				// Only Admins can delete
-				cards.DELETE("/:id", middleware.RequireRole("admin"), cardHandler.DeleteCard)
-			}
-
-			// Games management
-			games := protected.Group("/games")
-			{
-				games.POST("", middleware.RequireRole("editor", "admin"), gameHandler.CreateGame)
-				games.PUT("/:id", middleware.RequireRole("editor", "admin"), gameHandler.UpdateGame)
-				games.DELETE("/:id", middleware.RequireRole("admin"), gameHandler.DeleteGame)
-			}
-
-			// Language management
-			languages := protected.Group("/languages")
-			{
-				languages.POST("", middleware.RequireRole("editor", "admin"), languageHandler.CreateLanguage)
-				languages.PUT("/:id", middleware.RequireRole("editor", "admin"), languageHandler.UpdateLanguage)
-				languages.DELETE("/:id", middleware.RequireRole("admin"), languageHandler.DeleteLanguage)
-			}
-
-			// Pack management
-			packs := protected.Group("/packs")
-			{
-				packs.POST("", middleware.RequireRole("editor", "admin"), packHandler.CreatePack)
-				packs.PUT("/:id", middleware.RequireRole("editor", "admin"), packHandler.UpdatePack)
-				packs.DELETE("/:id", middleware.RequireRole("admin"), packHandler.DeletePack)
-			}
-
-			// Rarity management
-			rarities := protected.Group("/rarities")
-			{
-				rarities.POST("", middleware.RequireRole("editor", "admin"), rarityHandler.CreateRarity)
-				rarities.PUT("/:id", middleware.RequireRole("editor", "admin"), rarityHandler.UpdateRarity)
-				rarities.DELETE("/:id", middleware.RequireRole("admin"), rarityHandler.DeleteRarity)
-			}
-
-			// Storage management
-			storages := protected.Group("/storages")
-			{
-				// Storage management is only open to authenticated users
-				storages.GET("", storageHandler.GetStorages)
-				storages.GET("/:id", storageHandler.GetStorage)
-				storages.GET("/search", storageHandler.SearchStorages)
-				storages.POST("", middleware.RequireRole("editor", "admin"), storageHandler.CreateStorage)
-				storages.PUT("/:id", middleware.RequireRole("editor", "admin"), storageHandler.UpdateStorage)
-				storages.DELETE("/:id", middleware.RequireRole("admin"), storageHandler.DeleteStorage)
-			}
-
-			// Media management
-			media := protected.Group("/media")
-			{
-				media.POST("/upload", middleware.RequireRole("editor", "admin"), mediaHandler.UploadImage)
-			}
-		}
-	}
+	// Legacy (outside-contract) media endpoints, served from the shared handler.
+	router.GET("/media/:filename", shared.ServeMedia)
+	router.POST("/media/upload", shared.UploadImage)
+	router.POST("/media/scan", shared.ScanImage)
 
 	// Add swagger endpoint
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

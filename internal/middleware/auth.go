@@ -14,125 +14,96 @@ import (
 // If token is valid, sets isAuthenticated=true, otherwise sets isAuthenticated=false
 func OptionalJWTAuth(jwtSecret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-
-		// Default to unauthenticated
-		c.Set("isAuthenticated", false)
-
-		if authHeader == "" {
+		if !Authenticate(c, jwtSecret, false) {
 			c.Next()
 			return
 		}
-
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		if tokenString == authHeader {
-			// No Bearer prefix, continue as unauthenticated
-			c.Next()
-			return
-		}
-
-		// Create a temporary auth service to validate token
-		authService := &authServiceValidator{jwtSecret: jwtSecret}
-		token, err := authService.ValidateToken(tokenString)
-		if err != nil {
-			// Invalid token, continue as unauthenticated
-			c.Next()
-			return
-		}
-
-		if !token.Valid {
-			// Token is not valid
-			c.Next()
-			return
-		}
-
-		claims, ok := token.Claims.(*service.JWTClaims)
-		if !ok {
-			// Invalid claims, continue as unauthenticated
-			c.Next()
-			return
-		}
-
-		// Token is valid, set as authenticated
-		c.Set("isAuthenticated", true)
-		c.Set("userID", claims.UserID)
-		c.Set("userEmail", claims.Email)
-		c.Set("userRole", claims.Role)
-		c.Set("user", gin.H{
-			"id":    claims.UserID,
-			"email": claims.Email,
-			"role":  claims.Role,
-		})
-
 		c.Next()
 	}
 }
 
 func JWTAuth(jwtSecret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "authorization header required"})
+		if !Authenticate(c, jwtSecret, true) {
 			c.Abort()
 			return
 		}
-
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		if tokenString == authHeader {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid authorization header format"})
-			c.Abort()
-			return
-		}
-
-		// Create a temporary auth service to validate token
-		authService := &authServiceValidator{jwtSecret: jwtSecret}
-		token, err := authService.ValidateToken(tokenString)
-		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
-			c.Abort()
-			return
-		}
-
-		claims, ok := token.Claims.(*service.JWTClaims)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
-			c.Abort()
-			return
-		}
-
-		c.Set("userID", claims.UserID)
-		c.Set("userEmail", claims.Email)
-		c.Set("userRole", claims.Role)
-		c.Set("user", gin.H{
-			"id":    claims.UserID,
-			"email": claims.Email,
-			"role":  claims.Role,
-		})
-
 		c.Next()
 	}
 }
 
+// Authenticate verifies the Bearer token in the Authorization header. When
+// require is true it aborts the chain with 401 on any failure; otherwise it
+// leaves the request unauthenticated and returns false.
+func Authenticate(c *gin.Context, jwtSecret string, require bool) bool {
+	authHeader := c.GetHeader("Authorization")
+	c.Set("isAuthenticated", false)
+
+	if authHeader == "" {
+		return false
+	}
+
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	if tokenString == authHeader {
+		return false
+	}
+
+	token, err := (&authServiceValidator{jwtSecret: jwtSecret}).ValidateToken(tokenString)
+	if err != nil || !token.Valid {
+		if require {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		}
+		return false
+	}
+
+	claims, ok := token.Claims.(*service.JWTClaims)
+	if !ok {
+		if require {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
+		}
+		return false
+	}
+
+	c.Set("isAuthenticated", true)
+	c.Set("userID", claims.UserID)
+	c.Set("userEmail", claims.Email)
+	c.Set("userRole", claims.Role)
+	c.Set("user", gin.H{
+		"id":    claims.UserID,
+		"email": claims.Email,
+		"role":  claims.Role,
+	})
+	return true
+}
+
 func RequireRole(roles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userRole, exists := c.Get("userRole")
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "user role not found"})
+		if !HasRole(c, roles) {
 			c.Abort()
 			return
 		}
-
-		role := userRole.(string)
-		for _, requiredRole := range roles {
-			if role == requiredRole {
-				c.Next()
-				return
-			}
-		}
-
-		c.JSON(http.StatusForbidden, gin.H{"error": "insufficient permissions"})
-		c.Abort()
+		c.Next()
 	}
+}
+
+// HasRole reports whether the role stored in the gin context is in roles.
+// It writes the appropriate error response and aborts when it is not.
+func HasRole(c *gin.Context, roles []string) bool {
+	userRole, exists := c.Get("userRole")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user role not found"})
+		return false
+	}
+
+	role := userRole.(string)
+	for _, requiredRole := range roles {
+		if role == requiredRole {
+			return true
+		}
+	}
+
+	c.JSON(http.StatusForbidden, gin.H{"error": "insufficient permissions"})
+	return false
 }
 
 // Helper struct for token validation

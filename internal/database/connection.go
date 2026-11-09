@@ -9,13 +9,24 @@ import (
 )
 
 func NewConnection(databaseURL, databaseDriver string) (*gorm.DB, error) {
+	return NewConnectionWithConn(databaseURL, databaseDriver, nil)
+}
+
+// NewConnectionWithConn opens gorm with an optional pre-built ConnPool. When
+// conn is non-nil it is used directly (used to inject the OTel-instrumented
+// MySQL connection); otherwise the driver opens its own connection.
+func NewConnectionWithConn(databaseURL, databaseDriver string, conn gorm.ConnPool) (*gorm.DB, error) {
 	var dialector gorm.Dialector
 
 	switch databaseDriver {
 	case "postgres":
 		dialector = postgres.Open(databaseURL)
 	case "mysql":
-		dialector = mysql.Open(databaseURL)
+		if conn != nil {
+			dialector = mysql.New(mysql.Config{Conn: conn, DSN: databaseURL})
+		} else {
+			dialector = mysql.Open(databaseURL)
+		}
 	case "sqlite":
 		dialector = sqlite.Open(databaseURL)
 	default:
