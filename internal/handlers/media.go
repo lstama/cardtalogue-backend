@@ -34,7 +34,7 @@ func (s *shared) ScanMedia(ctx context.Context, req gen.ScanMediaRequestObject) 
 	if err != nil {
 		return gen.ScanMedia400JSONResponse{Error: err.Error()}, nil
 	}
-	return gen.ScanMedia200JSONResponse(toMediaScanResponse(resp)), nil
+	return gen.ScanMedia200JSONResponse{Data: ptrTo(toMediaScanResponse(resp))}, nil
 }
 
 func (s *shared) UploadMedia(ctx context.Context, req gen.UploadMediaRequestObject) (gen.UploadMediaResponseObject, error) {
@@ -46,7 +46,7 @@ func (s *shared) UploadMedia(ctx context.Context, req gen.UploadMediaRequestObje
 	if err != nil {
 		return gen.UploadMedia400JSONResponse{BadRequestJSONResponse: gen.BadRequestJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.UploadMedia200JSONResponse(toMediaUploadResponse(media)), nil
+	return gen.UploadMedia200JSONResponse{Data: ptrTo(toMediaUploadResponse(media))}, nil
 }
 
 func (s *shared) GetMediaById(ctx context.Context, req gen.GetMediaByIdRequestObject) (gen.GetMediaByIdResponseObject, error) {
@@ -57,7 +57,7 @@ func (s *shared) GetMediaById(ctx context.Context, req gen.GetMediaByIdRequestOb
 		}
 		return gen.GetMediaById404JSONResponse{NotFoundJSONResponse: gen.NotFoundJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.GetMediaById200JSONResponse(toMediaResponseFromMedia(m)), nil
+	return gen.GetMediaById200JSONResponse{Data: ptrTo(toMediaResponseFromMedia(m))}, nil
 }
 
 func (s *shared) UpdateMedia(ctx context.Context, req gen.UpdateMediaRequestObject) (gen.UpdateMediaResponseObject, error) {
@@ -68,7 +68,7 @@ func (s *shared) UpdateMedia(ctx context.Context, req gen.UpdateMediaRequestObje
 		}
 		return gen.UpdateMedia400JSONResponse{BadRequestJSONResponse: gen.BadRequestJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.UpdateMedia200JSONResponse(toMediaResponse(m)), nil
+	return gen.UpdateMedia200JSONResponse{Data: ptrTo(toMediaResponse(m))}, nil
 }
 
 func (s *shared) DeleteMedia(ctx context.Context, req gen.DeleteMediaRequestObject) (gen.DeleteMediaResponseObject, error) {

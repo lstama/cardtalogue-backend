@@ -8,7 +8,7 @@ import (
 
 func (s *shared) GetUsers(ctx context.Context, req gen.GetUsersRequestObject) (gen.GetUsersResponseObject, error) {
 	limit, offset := listParams(nil, nil)
-	users, _, err := s.services.Users.GetUsers(limit, offset)
+	users, total, err := s.services.Users.GetUsers(limit, offset)
 	if err != nil {
 		return gen.GetUsers500JSONResponse{ServerErrorJSONResponse: gen.ServerErrorJSONResponse{Error: err.Error()}}, nil
 	}
@@ -16,7 +16,7 @@ func (s *shared) GetUsers(ctx context.Context, req gen.GetUsersRequestObject) (g
 	for _, u := range users {
 		out = append(out, toUserResponse(u))
 	}
-	return gen.GetUsers200JSONResponse(out), nil
+	return gen.GetUsers200JSONResponse{Data: &out, Meta: newListMeta(limit, offset, total)}, nil
 }
 
 func (s *shared) GetUserById(ctx context.Context, req gen.GetUserByIdRequestObject) (gen.GetUserByIdResponseObject, error) {
@@ -27,7 +27,7 @@ func (s *shared) GetUserById(ctx context.Context, req gen.GetUserByIdRequestObje
 		}
 		return gen.GetUserById404JSONResponse{NotFoundJSONResponse: gen.NotFoundJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.GetUserById200JSONResponse(toUserResponse(u)), nil
+	return gen.GetUserById200JSONResponse{Data: ptrTo(toUserResponse(u))}, nil
 }
 
 func (s *shared) CreateUser(ctx context.Context, req gen.CreateUserRequestObject) (gen.CreateUserResponseObject, error) {
@@ -35,7 +35,7 @@ func (s *shared) CreateUser(ctx context.Context, req gen.CreateUserRequestObject
 	if err != nil {
 		return gen.CreateUser400JSONResponse{BadRequestJSONResponse: gen.BadRequestJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.CreateUser200JSONResponse(toUserResponse(u)), nil
+	return gen.CreateUser200JSONResponse{Data: ptrTo(toUserResponse(u))}, nil
 }
 
 func (s *shared) UpdateUser(ctx context.Context, req gen.UpdateUserRequestObject) (gen.UpdateUserResponseObject, error) {
@@ -46,7 +46,7 @@ func (s *shared) UpdateUser(ctx context.Context, req gen.UpdateUserRequestObject
 		}
 		return gen.UpdateUser400JSONResponse{BadRequestJSONResponse: gen.BadRequestJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.UpdateUser200JSONResponse(toUserResponse(u)), nil
+	return gen.UpdateUser200JSONResponse{Data: ptrTo(toUserResponse(u))}, nil
 }
 
 func (s *shared) DeleteUser(ctx context.Context, req gen.DeleteUserRequestObject) (gen.DeleteUserResponseObject, error) {

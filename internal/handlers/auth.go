@@ -110,14 +110,20 @@ func (s *shared) Login(ctx context.Context, req gen.LoginRequestObject) (gen.Log
 	}
 	u := toUserResponse(&authResp.User)
 	return gen.Login200JSONResponse{
-		AccessToken:  strPtr(authResp.AccessToken),
-		RefreshToken: strPtr(authResp.RefreshToken),
-		User:         &u,
+		Data: &gen.LoginResponse{
+			AccessToken:  strPtr(authResp.AccessToken),
+			RefreshToken: strPtr(authResp.RefreshToken),
+			User:         &u,
+		},
 	}, nil
 }
 
 func (s *shared) Logout(ctx context.Context, req gen.LogoutRequestObject) (gen.LogoutResponseObject, error) {
-	return gen.Logout200JSONResponse{Message: strPtr("logged out")}, nil
+	return gen.Logout200JSONResponse{
+		Data: &struct {
+			Message *string `json:"message,omitempty"`
+		}{Message: strPtr("logged out")},
+	}, nil
 }
 
 func (s *shared) Refresh(ctx context.Context, req gen.RefreshRequestObject) (gen.RefreshResponseObject, error) {
@@ -126,6 +132,6 @@ func (s *shared) Refresh(ctx context.Context, req gen.RefreshRequestObject) (gen
 		return gen.Refresh401JSONResponse{UnauthorizedJSONResponse: gen.UnauthorizedJSONResponse{Error: "invalid refresh token"}}, nil
 	}
 	return gen.Refresh200JSONResponse{
-		AccessToken: strPtr(authResp.AccessToken),
+		Data: &gen.RefreshTokenResponse{AccessToken: strPtr(authResp.AccessToken)},
 	}, nil
 }

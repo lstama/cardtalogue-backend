@@ -44,10 +44,10 @@ func (s *gameService) GetGame(id uint) (*models.GameResponse, error) {
 
 func (s *gameService) GetGames(limit, offset int) ([]*models.GameResponse, int64, error) {
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 	games, err := s.gameRepo.GetAll(limit, offset)
 	if err != nil {
@@ -96,10 +96,10 @@ func (s *gameService) toGameResponse(game *models.Game) *models.GameResponse {
 
 func (s *gameService) SearchGames(query_string string, limit, offset int) ([]*models.GameResponse, int64, error) {
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 	games, total, err := s.gameRepo.Search(query_string, limit, offset)
 	if err != nil {

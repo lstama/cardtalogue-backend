@@ -47,9 +47,13 @@ paths:
               schema:
                 type: object
                 properties:
-                  status:
-                    type: string
-                    example: healthy
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: healthy
+
         '503':
           $ref: '#/components/responses/ServerError'
   /auth/login:
@@ -71,7 +75,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LoginResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/LoginResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -96,7 +104,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RefreshTokenResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/RefreshTokenResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -118,9 +130,13 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: logged out
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: logged out
+
         '400':
           $ref: '#/components/responses/BadRequest'
   /cards:
@@ -138,9 +154,22 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CardResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CardResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      total:
+                        type: integer
+
           description: 200 response
         '500':
           $ref: '#/components/responses/ServerError'
@@ -161,7 +190,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CardResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CardResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -207,9 +240,22 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CardResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CardResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      total:
+                        type: integer
+
           description: 200 response
         '500':
           $ref: '#/components/responses/ServerError'
@@ -227,7 +273,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CardResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CardResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -252,7 +302,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CardResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CardResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -277,9 +331,22 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CardProtectedResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CardProtectedResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      total:
+                        type: integer
+
           description: 200 response
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -299,7 +366,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CardProtectedResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CardProtectedResponse'
+
           description: 200 response
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -324,7 +395,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CardProtectedResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CardProtectedResponse'
+
           description: 200 response
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -347,9 +422,22 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/GameResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GameResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      total:
+                        type: integer
+
           description: 200 response
         '500':
           $ref: '#/components/responses/ServerError'
@@ -370,7 +458,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GameResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/GameResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -398,9 +490,22 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/GameResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GameResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      total:
+                        type: integer
+
           description: 200 response
         '500':
           $ref: '#/components/responses/ServerError'
@@ -418,7 +523,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GameResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/GameResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -443,7 +552,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GameResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/GameResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -467,9 +580,13 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: deleted
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: deleted
+
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -491,9 +608,22 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/LanguageResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LanguageResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      total:
+                        type: integer
+
           description: 200 response
         '500':
           $ref: '#/components/responses/ServerError'
@@ -514,7 +644,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LanguageResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/LanguageResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -542,9 +676,22 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/LanguageResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LanguageResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      total:
+                        type: integer
+
           description: 200 response
         '500':
           $ref: '#/components/responses/ServerError'
@@ -562,7 +709,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LanguageResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/LanguageResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -587,7 +738,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LanguageResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/LanguageResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -627,9 +782,22 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PackResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PackResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      total:
+                        type: integer
+
           description: 200 response
         '500':
           $ref: '#/components/responses/ServerError'
@@ -650,7 +818,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PackResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PackResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -690,9 +862,22 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PackResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PackResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      total:
+                        type: integer
+
           description: 200 response
         '500':
           $ref: '#/components/responses/ServerError'
@@ -710,7 +895,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PackResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PackResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -735,7 +924,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PackResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PackResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -775,9 +968,22 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/RarityResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RarityResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      total:
+                        type: integer
+
           description: 200 response
         '500':
           $ref: '#/components/responses/ServerError'
@@ -798,7 +1004,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RarityResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/RarityResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -826,9 +1036,22 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/RarityResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RarityResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      total:
+                        type: integer
+
           description: 200 response
         '500':
           $ref: '#/components/responses/ServerError'
@@ -846,7 +1069,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RarityResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/RarityResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -871,7 +1098,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RarityResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/RarityResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -911,9 +1142,22 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StorageResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StorageResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      total:
+                        type: integer
+
           description: 200 response
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -936,7 +1180,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StorageResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/StorageResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -964,9 +1212,22 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/StorageResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StorageResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      total:
+                        type: integer
+
           description: 200 response
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -986,7 +1247,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StorageResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/StorageResponse'
+
           description: 200 response
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -1011,7 +1276,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StorageResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/StorageResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -1048,9 +1317,22 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UserResponse'
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserResponse'
+                  meta:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+                      total:
+                        type: integer
+
           description: 200 response
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -1073,7 +1355,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -1095,7 +1381,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserResponse'
+
           description: 200 response
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -1120,7 +1410,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/UserResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -1172,7 +1466,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MediaScanResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MediaScanResponse'
+
           description: 200 response
         '400':
           description: Bad request (missing file / captcha)
@@ -1219,7 +1517,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MediaUploadResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MediaUploadResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -1245,7 +1547,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MediaResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MediaResponse'
+
           description: 200 response
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -1270,7 +1576,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MediaResponse'
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MediaResponse'
+
           description: 200 response
         '400':
           $ref: '#/components/responses/BadRequest'

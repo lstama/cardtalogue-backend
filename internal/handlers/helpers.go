@@ -210,17 +210,47 @@ func extractFileHeader(reader *multipart.Reader) (*multipart.FileHeader, error) 
 	return nil, fmt.Errorf("no file part in multipart form")
 }
 
-// listParams normalizes contract limit/offset (int32, default 0) into
-// (limit, offset) ints. limit==0 means "no limit" for the services.
+// listParams normalizes contract limit/offset into effective (limit, offset)
+// values. The contract defaults to limit=100 and caps it at 1000.
 
 func listParams(limit *int32, offset *int32) (int, int) {
-	l := 0
-	if limit != nil {
+	l := 100
+	if limit != nil && *limit > 0 {
 		l = int(*limit)
 	}
+	if l > 1000 {
+		l = 1000
+	}
 	o := 0
-	if offset != nil {
+	if offset != nil && *offset > 0 {
 		o = int(*offset)
 	}
 	return l, o
+}
+
+// listMeta matches the generated contract response meta object. The alias keeps
+// the anonymous generated struct assignable from this helper.
+type listMeta = struct {
+	Page     *int `json:"page,omitempty"`
+	PageSize *int `json:"pageSize,omitempty"`
+	Total    *int `json:"total,omitempty"`
+}
+
+func newListMeta(limit, offset int, total int64) *listMeta {
+	page := 1
+	if limit > 0 {
+		page = offset/limit + 1
+	}
+	t := int(total)
+	return &listMeta{
+		Page:     intPtr(page),
+		PageSize: intPtr(limit),
+		Total:    &t,
+	}
+}
+
+// ptrTo returns a pointer to a copy of v, used when the generated response
+// structs wrap values in optional fields.
+func ptrTo[T any](v T) *T {
+	return &v
 }
