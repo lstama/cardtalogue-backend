@@ -14,6 +14,7 @@ import (
 type MediaService interface {
 	UploadImage(file *multipart.FileHeader, baseURL, uploadPath string, alsoScan bool) (*models.MediaResponse, map[string]interface{}, error)
 	GetMedia(id uint) (*models.Media, error)
+	UpdateMedia(id uint, req *models.UpdateMediaRequest) (*models.MediaResponse, error)
 	DeleteMedia(id uint) error
 	DeletePendingMedia() error
 	DeleteOldPendingMedia(minutes int) error
@@ -65,12 +66,18 @@ func (s *mediaService) UploadImage(file *multipart.FileHeader, baseURL, uploadPa
 
 	// Convert to response
 	response := &models.MediaResponse{
-		ID:        media.ID,
-		URL:       media.URL,
-		Status:    media.Status,
-		Provider:  media.Provider,
-		CreatedAt: media.CreatedAt,
-		UpdatedAt: media.UpdatedAt,
+		ID:           media.ID,
+		URL:          media.URL,
+		Status:       media.Status,
+		Provider:     media.Provider,
+		Type:         media.Type,
+		FileName:     media.FileName,
+		FileThumbURL: media.FileThumbURL,
+		FileSize:     media.FileSize,
+		IsDeleted:    media.IsDeleted,
+		IsPending:    media.IsPending,
+		CreatedAt:    media.CreatedAt,
+		UpdatedAt:    media.UpdatedAt,
 	}
 
 	// Handle card recognition if requested
@@ -112,6 +119,46 @@ func (s *mediaService) GetMedia(id uint) (*models.Media, error) {
 
 func (s *mediaService) DeleteMedia(id uint) error {
 	return s.mediaRepo.Delete(id)
+}
+
+func (s *mediaService) UpdateMedia(id uint, req *models.UpdateMediaRequest) (*models.MediaResponse, error) {
+	media, err := s.mediaRepo.GetByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if req.URL != nil {
+		media.URL = *req.URL
+	}
+	if req.Description != nil {
+		media.Description = *req.Description
+	}
+	if req.Status != nil {
+		media.Status = *req.Status
+	}
+	if req.Provider != nil {
+		media.Provider = *req.Provider
+	}
+
+	if err := s.mediaRepo.Update(media); err != nil {
+		return nil, err
+	}
+
+	return &models.MediaResponse{
+		ID:           media.ID,
+		URL:          media.URL,
+		Description:  media.Description,
+		Status:       media.Status,
+		Provider:     media.Provider,
+		Type:         media.Type,
+		FileName:     media.FileName,
+		FileThumbURL: media.FileThumbURL,
+		FileSize:     media.FileSize,
+		IsDeleted:    media.IsDeleted,
+		IsPending:    media.IsPending,
+		CreatedAt:    media.CreatedAt,
+		UpdatedAt:    media.UpdatedAt,
+	}, nil
 }
 
 func (s *mediaService) DeletePendingMedia() error {

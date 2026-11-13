@@ -5,23 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/lstama/cardtalogue-backend/internal/config"
-	"github.com/lstama/cardtalogue-backend/internal/service"
-
 	"github.com/gin-gonic/gin"
 )
-
-type MediaHandler struct {
-	mediaService service.MediaService
-	config       *config.Config
-}
-
-func NewMediaHandler(mediaService service.MediaService, cfg *config.Config) *MediaHandler {
-	return &MediaHandler{
-		mediaService: mediaService,
-		config:       cfg,
-	}
-}
 
 // UploadImage godoc
 // @Summary Upload an image
@@ -36,7 +21,7 @@ func NewMediaHandler(mediaService service.MediaService, cfg *config.Config) *Med
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /media/upload [post]
-func (h *MediaHandler) UploadImage(c *gin.Context) {
+func (s *shared) UploadImage(c *gin.Context) {
 	// Parse multipart form
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -48,7 +33,7 @@ func (h *MediaHandler) UploadImage(c *gin.Context) {
 	alsoScan := c.DefaultQuery("also_scan", "false") == "true"
 
 	// Upload image
-	media, scanResult, err := h.mediaService.UploadImage(file, h.config.APIBaseURL, h.config.MediaUploadPath, alsoScan)
+	media, scanResult, err := s.services.Media.UploadImage(file, s.cfg.APIBaseURL, s.cfg.MediaUploadPath, alsoScan)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -75,7 +60,7 @@ func (h *MediaHandler) UploadImage(c *gin.Context) {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /media/scan [post]
-func (h *MediaHandler) ScanImage(c *gin.Context) {
+func (s *shared) ScanImage(c *gin.Context) {
 	// Parse multipart form
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -84,7 +69,7 @@ func (h *MediaHandler) ScanImage(c *gin.Context) {
 	}
 
 	// Scan image
-	scanResult, err := h.mediaService.ScanImage(file)
+	scanResult, err := s.services.Media.ScanImage(file)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -102,7 +87,7 @@ func (h *MediaHandler) ScanImage(c *gin.Context) {
 // @Success 200 {file} binary
 // @Failure 404 {object} map[string]string
 // @Router /media/{filename} [get]
-func (h *MediaHandler) ServeMedia(c *gin.Context) {
+func (s *shared) ServeMedia(c *gin.Context) {
 	filename := c.Param("filename")
 
 	// Validate filename to prevent path traversal
@@ -111,7 +96,7 @@ func (h *MediaHandler) ServeMedia(c *gin.Context) {
 		return
 	}
 
-	filePath := filepath.Join(h.config.MediaUploadPath, filename)
+	filePath := filepath.Join(s.cfg.MediaUploadPath, filename)
 
 	// Check if file exists
 	if _, err := os.Stat(filePath); err != nil {

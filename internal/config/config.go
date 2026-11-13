@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -25,6 +26,23 @@ type Config struct {
 	CaptchaMode          string
 	CapURL               string
 	CapSecret            string
+
+	// Observability (OpenTelemetry)
+	OTEL_SERVICE_NAME              string
+	OTEL_EXPORTER_OTLP_ENDPOINT    string
+	OTEL_EXPORTER_OTLP_PROTOCOL    string
+	OTEL_TRACES_EXPORTER           string
+	OTEL_METRICS_EXPORTER          string
+	OTEL_METRICS_ADDRESS           string
+	OTEL_METRICS_PORT              string
+	OTEL_RESOURCE_ATTRIBUTES       string
+	OTEL_BSP_SCHEDULE_DELAY        int
+	OTEL_BSP_MAX_QUEUE_SIZE        int
+	OTEL_BSP_MAX_EXPORT_BATCH_SIZE int
+
+	// Logging
+	LOG_LEVEL  string
+	LOG_FORMAT string
 }
 
 func Load() *Config {
@@ -59,12 +77,38 @@ func Load() *Config {
 		CaptchaMode:          getEnv("CAPTCHA_MODE", "off"),
 		CapURL:               getEnv("CAP_URL", ""),
 		CapSecret:            getEnv("CAP_SECRET", ""),
+
+		// Observability (OpenTelemetry)
+		OTEL_SERVICE_NAME:              getEnv("OTEL_SERVICE_NAME", "cardtalogue-backend"),
+		OTEL_EXPORTER_OTLP_ENDPOINT:    getEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317"),
+		OTEL_EXPORTER_OTLP_PROTOCOL:    getEnv("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"),
+		OTEL_TRACES_EXPORTER:           getEnv("OTEL_TRACES_EXPORTER", "otlp"),
+		OTEL_METRICS_EXPORTER:          getEnv("OTEL_METRICS_EXPORTER", "otlp"),
+		OTEL_METRICS_ADDRESS:           getEnv("OTEL_METRICS_ADDRESS", "0.0.0.0"),
+		OTEL_METRICS_PORT:              getEnv("OTEL_METRICS_PORT", "8888"),
+		OTEL_RESOURCE_ATTRIBUTES:       getEnv("OTEL_RESOURCE_ATTRIBUTES", ""),
+		OTEL_BSP_SCHEDULE_DELAY:        getEnvInt("OTEL_BSP_SCHEDULE_DELAY", 5000),
+		OTEL_BSP_MAX_QUEUE_SIZE:        getEnvInt("OTEL_BSP_MAX_QUEUE_SIZE", 2048),
+		OTEL_BSP_MAX_EXPORT_BATCH_SIZE: getEnvInt("OTEL_BSP_MAX_EXPORT_BATCH_SIZE", 512),
+
+		// Logging
+		LOG_LEVEL:  getEnv("LOG_LEVEL", "info"),
+		LOG_FORMAT: getEnv("LOG_FORMAT", "json"),
 	}
 }
 
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return defaultValue
+}
+
+func getEnvInt(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		if parsed, err := strconv.Atoi(value); err == nil {
+			return parsed
+		}
 	}
 	return defaultValue
 }
