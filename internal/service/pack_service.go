@@ -58,10 +58,10 @@ func (s *packService) GetPack(id uint) (*models.PackResponse, error) {
 func (s *packService) GetPacks(limit, offset int) ([]*models.PackResponse, int64, error) {
 	// Set default limit if not provided
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 
 	packs, err := s.packRepo.GetAll(limit, offset)
@@ -143,10 +143,10 @@ func (s *packService) toPackResponse(pack *models.Pack) *models.PackResponse {
 func (s *packService) SearchPacks(game_id int, language_id int, query_string string, limit, offset int) ([]*models.PackResponse, int64, error) {
 	// Set default limit if not provided
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 
 	packs, total, err := s.packRepo.Search(game_id, language_id, query_string, limit, offset)

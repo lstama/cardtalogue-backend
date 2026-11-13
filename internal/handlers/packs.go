@@ -8,7 +8,7 @@ import (
 
 func (s *shared) GetPacks(ctx context.Context, req gen.GetPacksRequestObject) (gen.GetPacksResponseObject, error) {
 	limit, offset := listParams(req.Params.Limit, req.Params.Offset)
-	packs, _, err := s.services.Packs.GetPacks(limit, offset)
+	packs, total, err := s.services.Packs.GetPacks(limit, offset)
 	if err != nil {
 		return gen.GetPacks500JSONResponse{ServerErrorJSONResponse: gen.ServerErrorJSONResponse{Error: err.Error()}}, nil
 	}
@@ -16,12 +16,12 @@ func (s *shared) GetPacks(ctx context.Context, req gen.GetPacksRequestObject) (g
 	for _, p := range packs {
 		out = append(out, toPackResponse(p))
 	}
-	return gen.GetPacks200JSONResponse(out), nil
+	return gen.GetPacks200JSONResponse{Data: &out, Meta: newListMeta(limit, offset, total)}, nil
 }
 
 func (s *shared) SearchPacks(ctx context.Context, req gen.SearchPacksRequestObject) (gen.SearchPacksResponseObject, error) {
 	limit, offset := listParams(req.Params.Limit, req.Params.Offset)
-	packs, _, err := s.services.Packs.SearchPacks(int(derefUint32(req.Params.GameId)), int(derefUint32(req.Params.LanguageId)), derefStr(req.Params.Query), int(limit), int(offset))
+	packs, total, err := s.services.Packs.SearchPacks(int(derefUint32(req.Params.GameId)), int(derefUint32(req.Params.LanguageId)), derefStr(req.Params.Query), limit, offset)
 	if err != nil {
 		return gen.SearchPacks500JSONResponse{ServerErrorJSONResponse: gen.ServerErrorJSONResponse{Error: err.Error()}}, nil
 	}
@@ -29,7 +29,7 @@ func (s *shared) SearchPacks(ctx context.Context, req gen.SearchPacksRequestObje
 	for _, p := range packs {
 		out = append(out, toPackResponse(p))
 	}
-	return gen.SearchPacks200JSONResponse(out), nil
+	return gen.SearchPacks200JSONResponse{Data: &out, Meta: newListMeta(limit, offset, total)}, nil
 }
 
 func (s *shared) GetPackById(ctx context.Context, req gen.GetPackByIdRequestObject) (gen.GetPackByIdResponseObject, error) {
@@ -40,7 +40,7 @@ func (s *shared) GetPackById(ctx context.Context, req gen.GetPackByIdRequestObje
 		}
 		return gen.GetPackById500JSONResponse{ServerErrorJSONResponse: gen.ServerErrorJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.GetPackById200JSONResponse(toPackResponse(p)), nil
+	return gen.GetPackById200JSONResponse{Data: ptrTo(toPackResponse(p))}, nil
 }
 
 func (s *shared) CreatePack(ctx context.Context, req gen.CreatePackRequestObject) (gen.CreatePackResponseObject, error) {
@@ -48,7 +48,7 @@ func (s *shared) CreatePack(ctx context.Context, req gen.CreatePackRequestObject
 	if err != nil {
 		return gen.CreatePack400JSONResponse{BadRequestJSONResponse: gen.BadRequestJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.CreatePack200JSONResponse(toPackResponse(p)), nil
+	return gen.CreatePack200JSONResponse{Data: ptrTo(toPackResponse(p))}, nil
 }
 
 func (s *shared) UpdatePack(ctx context.Context, req gen.UpdatePackRequestObject) (gen.UpdatePackResponseObject, error) {
@@ -59,7 +59,7 @@ func (s *shared) UpdatePack(ctx context.Context, req gen.UpdatePackRequestObject
 		}
 		return gen.UpdatePack400JSONResponse{BadRequestJSONResponse: gen.BadRequestJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.UpdatePack200JSONResponse(toPackResponse(p)), nil
+	return gen.UpdatePack200JSONResponse{Data: ptrTo(toPackResponse(p))}, nil
 }
 
 func (s *shared) DeletePack(ctx context.Context, req gen.DeletePackRequestObject) (gen.DeletePackResponseObject, error) {

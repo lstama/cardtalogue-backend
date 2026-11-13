@@ -62,10 +62,10 @@ func (s *userService) GetUser(id uint) (*models.UserResponse, error) {
 func (s *userService) GetUsers(limit, offset int) ([]*models.UserResponse, int64, error) {
 	// Set default limit if not provided
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 
 	users, err := s.userRepo.GetAll(limit, offset)

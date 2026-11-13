@@ -45,10 +45,10 @@ func (s *rarityService) GetRarity(id uint) (*models.RarityResponse, error) {
 
 func (s *rarityService) GetRarities(limit, offset int) ([]*models.RarityResponse, int64, error) {
 	if limit <= 0 {
-		limit = 20
+		limit = 100
 	}
-	if limit > 100 {
-		limit = 10
+	if limit > 1000 {
+		limit = 1000
 	}
 	rarities, err := s.rarityRepo.GetAll(limit, offset)
 	if err != nil {
@@ -102,10 +102,10 @@ func (s *rarityService) toRarityResponse(rarity *models.Rarity) *models.RarityRe
 func (s *rarityService) SearchRarities(query_string string, limit, offset int) ([]*models.RarityResponse, int64, error) {
 	// Set default limit if not provided
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 	rarities, total, err := s.rarityRepo.Search(query_string, limit, offset)
 	if err != nil {

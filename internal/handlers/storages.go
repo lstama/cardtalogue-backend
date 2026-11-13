@@ -8,7 +8,7 @@ import (
 
 func (s *shared) GetStorages(ctx context.Context, req gen.GetStoragesRequestObject) (gen.GetStoragesResponseObject, error) {
 	limit, offset := listParams(req.Params.Limit, req.Params.Offset)
-	storages, _, err := s.services.Storages.GetStorages(limit, offset)
+	storages, total, err := s.services.Storages.GetStorages(limit, offset)
 	if err != nil {
 		return gen.GetStorages500JSONResponse{ServerErrorJSONResponse: gen.ServerErrorJSONResponse{Error: err.Error()}}, nil
 	}
@@ -16,12 +16,12 @@ func (s *shared) GetStorages(ctx context.Context, req gen.GetStoragesRequestObje
 	for _, st := range storages {
 		out = append(out, toStorageResponse(st))
 	}
-	return gen.GetStorages200JSONResponse(out), nil
+	return gen.GetStorages200JSONResponse{Data: &out, Meta: newListMeta(limit, offset, total)}, nil
 }
 
 func (s *shared) SearchStorages(ctx context.Context, req gen.SearchStoragesRequestObject) (gen.SearchStoragesResponseObject, error) {
 	limit, offset := listParams(req.Params.Limit, req.Params.Offset)
-	storages, _, err := s.services.Storages.SearchStorages(derefStr(req.Params.Query), limit, offset)
+	storages, total, err := s.services.Storages.SearchStorages(derefStr(req.Params.Query), limit, offset)
 	if err != nil {
 		return gen.SearchStorages500JSONResponse{ServerErrorJSONResponse: gen.ServerErrorJSONResponse{Error: err.Error()}}, nil
 	}
@@ -29,7 +29,7 @@ func (s *shared) SearchStorages(ctx context.Context, req gen.SearchStoragesReque
 	for _, st := range storages {
 		out = append(out, toStorageResponse(st))
 	}
-	return gen.SearchStorages200JSONResponse(out), nil
+	return gen.SearchStorages200JSONResponse{Data: &out, Meta: newListMeta(limit, offset, total)}, nil
 }
 
 func (s *shared) GetStorageById(ctx context.Context, req gen.GetStorageByIdRequestObject) (gen.GetStorageByIdResponseObject, error) {
@@ -37,7 +37,7 @@ func (s *shared) GetStorageById(ctx context.Context, req gen.GetStorageByIdReque
 	if err != nil {
 		return gen.GetStorageById404JSONResponse{NotFoundJSONResponse: gen.NotFoundJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.GetStorageById200JSONResponse(toStorageResponse(st)), nil
+	return gen.GetStorageById200JSONResponse{Data: ptrTo(toStorageResponse(st))}, nil
 }
 
 func (s *shared) CreateStorage(ctx context.Context, req gen.CreateStorageRequestObject) (gen.CreateStorageResponseObject, error) {
@@ -45,7 +45,7 @@ func (s *shared) CreateStorage(ctx context.Context, req gen.CreateStorageRequest
 	if err != nil {
 		return gen.CreateStorage400JSONResponse{BadRequestJSONResponse: gen.BadRequestJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.CreateStorage200JSONResponse(toStorageResponse(st)), nil
+	return gen.CreateStorage200JSONResponse{Data: ptrTo(toStorageResponse(st))}, nil
 }
 
 func (s *shared) UpdateStorage(ctx context.Context, req gen.UpdateStorageRequestObject) (gen.UpdateStorageResponseObject, error) {
@@ -56,7 +56,7 @@ func (s *shared) UpdateStorage(ctx context.Context, req gen.UpdateStorageRequest
 		}
 		return gen.UpdateStorage400JSONResponse{BadRequestJSONResponse: gen.BadRequestJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.UpdateStorage200JSONResponse(toStorageResponse(st)), nil
+	return gen.UpdateStorage200JSONResponse{Data: ptrTo(toStorageResponse(st))}, nil
 }
 
 func (s *shared) DeleteStorage(ctx context.Context, req gen.DeleteStorageRequestObject) (gen.DeleteStorageResponseObject, error) {

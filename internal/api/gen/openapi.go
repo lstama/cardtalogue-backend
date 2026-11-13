@@ -2508,7 +2508,10 @@ type LoginResponseObject interface {
 	VisitLoginResponse(w http.ResponseWriter) error
 }
 
-type Login200JSONResponse LoginResponse
+type Login200JSONResponse struct {
+	// Data Examples: {"access_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example","refresh_token":"0a1b2c3d4e5f60718293a4b5c6d7e8f9","user":{"$ref":"#/components/schemas/UserResponse"}}
+	Data *LoginResponse `json:"data,omitempty"`
+}
 
 func (response Login200JSONResponse) VisitLoginResponse(w http.ResponseWriter) error {
 
@@ -2558,7 +2561,9 @@ type LogoutResponseObject interface {
 }
 
 type Logout200JSONResponse struct {
-	Message *string `json:"message,omitempty"`
+	Data *struct {
+		Message *string `json:"message,omitempty"`
+	} `json:"data,omitempty"`
 }
 
 func (response Logout200JSONResponse) VisitLogoutResponse(w http.ResponseWriter) error {
@@ -2595,7 +2600,9 @@ type RefreshResponseObject interface {
 	VisitRefreshResponse(w http.ResponseWriter) error
 }
 
-type Refresh200JSONResponse RefreshTokenResponse
+type Refresh200JSONResponse struct {
+	Data *RefreshTokenResponse `json:"data,omitempty"`
+}
 
 func (response Refresh200JSONResponse) VisitRefreshResponse(w http.ResponseWriter) error {
 
@@ -2645,7 +2652,14 @@ type GetCardsResponseObject interface {
 	VisitGetCardsResponse(w http.ResponseWriter) error
 }
 
-type GetCards200JSONResponse []CardResponse
+type GetCards200JSONResponse struct {
+	Data *[]CardResponse `json:"data,omitempty"`
+	Meta *struct {
+		Page     *int `json:"page,omitempty"`
+		PageSize *int `json:"pageSize,omitempty"`
+		Total    *int `json:"total,omitempty"`
+	} `json:"meta,omitempty"`
+}
 
 func (response GetCards200JSONResponse) VisitGetCardsResponse(w http.ResponseWriter) error {
 
@@ -2681,7 +2695,10 @@ type CreateCardResponseObject interface {
 	VisitCreateCardResponse(w http.ResponseWriter) error
 }
 
-type CreateCard200JSONResponse CardResponse
+type CreateCard200JSONResponse struct {
+	// Data Examples: {"code":"12345678","created_at":"2024-01-01T00:00:00Z","game_id":1,"id":1,"is_protected":false,"media_id":null,"name":"Dark Magician","owner_id":1,"pack_id":null,"price":3000,"price_multiplier":1,"quantity":100,"rarity_code":"N","rarity_id":null,"rarity_name":"Normal","updated_at":"2024-06-01T00:00:00Z"}
+	Data *CardResponse `json:"data,omitempty"`
+}
 
 func (response CreateCard200JSONResponse) VisitCreateCardResponse(w http.ResponseWriter) error {
 
@@ -2745,7 +2762,14 @@ type GetProtectedCardsResponseObject interface {
 	VisitGetProtectedCardsResponse(w http.ResponseWriter) error
 }
 
-type GetProtectedCards200JSONResponse []CardProtectedResponse
+type GetProtectedCards200JSONResponse struct {
+	Data *[]CardProtectedResponse `json:"data,omitempty"`
+	Meta *struct {
+		Page     *int `json:"page,omitempty"`
+		PageSize *int `json:"pageSize,omitempty"`
+		Total    *int `json:"total,omitempty"`
+	} `json:"meta,omitempty"`
+}
 
 func (response GetProtectedCards200JSONResponse) VisitGetProtectedCardsResponse(w http.ResponseWriter) error {
 
@@ -2795,7 +2819,9 @@ type GetProtectedCardByIdResponseObject interface {
 	VisitGetProtectedCardByIdResponse(w http.ResponseWriter) error
 }
 
-type GetProtectedCardById200JSONResponse CardProtectedResponse
+type GetProtectedCardById200JSONResponse struct {
+	Data *CardProtectedResponse `json:"data,omitempty"`
+}
 
 func (response GetProtectedCardById200JSONResponse) VisitGetProtectedCardByIdResponse(w http.ResponseWriter) error {
 
@@ -2860,7 +2886,9 @@ type UpdateProtectedCardResponseObject interface {
 	VisitUpdateProtectedCardResponse(w http.ResponseWriter) error
 }
 
-type UpdateProtectedCard200JSONResponse CardProtectedResponse
+type UpdateProtectedCard200JSONResponse struct {
+	Data *CardProtectedResponse `json:"data,omitempty"`
+}
 
 func (response UpdateProtectedCard200JSONResponse) VisitUpdateProtectedCardResponse(w http.ResponseWriter) error {
 
@@ -2924,7 +2952,14 @@ type SearchCardsResponseObject interface {
 	VisitSearchCardsResponse(w http.ResponseWriter) error
 }
 
-type SearchCards200JSONResponse []CardResponse
+type SearchCards200JSONResponse struct {
+	Data *[]CardResponse `json:"data,omitempty"`
+	Meta *struct {
+		Page     *int `json:"page,omitempty"`
+		PageSize *int `json:"pageSize,omitempty"`
+		Total    *int `json:"total,omitempty"`
+	} `json:"meta,omitempty"`
+}
 
 func (response SearchCards200JSONResponse) VisitSearchCardsResponse(w http.ResponseWriter) error {
 
@@ -2960,7 +2995,10 @@ type GetCardByIdResponseObject interface {
 	VisitGetCardByIdResponse(w http.ResponseWriter) error
 }
 
-type GetCardById200JSONResponse CardResponse
+type GetCardById200JSONResponse struct {
+	// Data Examples: {"code":"12345678","created_at":"2024-01-01T00:00:00Z","game_id":1,"id":1,"is_protected":false,"media_id":null,"name":"Dark Magician","owner_id":1,"pack_id":null,"price":3000,"price_multiplier":1,"quantity":100,"rarity_code":"N","rarity_id":null,"rarity_name":"Normal","updated_at":"2024-06-01T00:00:00Z"}
+	Data *CardResponse `json:"data,omitempty"`
+}
 
 func (response GetCardById200JSONResponse) VisitGetCardByIdResponse(w http.ResponseWriter) error {
 
@@ -3025,7 +3063,10 @@ type UpdateCardResponseObject interface {
 	VisitUpdateCardResponse(w http.ResponseWriter) error
 }
 
-type UpdateCard200JSONResponse CardResponse
+type UpdateCard200JSONResponse struct {
+	// Data Examples: {"code":"12345678","created_at":"2024-01-01T00:00:00Z","game_id":1,"id":1,"is_protected":false,"media_id":null,"name":"Dark Magician","owner_id":1,"pack_id":null,"price":3000,"price_multiplier":1,"quantity":100,"rarity_code":"N","rarity_id":null,"rarity_name":"Normal","updated_at":"2024-06-01T00:00:00Z"}
+	Data *CardResponse `json:"data,omitempty"`
+}
 
 func (response UpdateCard200JSONResponse) VisitUpdateCardResponse(w http.ResponseWriter) error {
 
@@ -3103,7 +3144,14 @@ type GetGamesResponseObject interface {
 	VisitGetGamesResponse(w http.ResponseWriter) error
 }
 
-type GetGames200JSONResponse []GameResponse
+type GetGames200JSONResponse struct {
+	Data *[]GameResponse `json:"data,omitempty"`
+	Meta *struct {
+		Page     *int `json:"page,omitempty"`
+		PageSize *int `json:"pageSize,omitempty"`
+		Total    *int `json:"total,omitempty"`
+	} `json:"meta,omitempty"`
+}
 
 func (response GetGames200JSONResponse) VisitGetGamesResponse(w http.ResponseWriter) error {
 
@@ -3139,7 +3187,10 @@ type CreateGameResponseObject interface {
 	VisitCreateGameResponse(w http.ResponseWriter) error
 }
 
-type CreateGame200JSONResponse GameResponse
+type CreateGame200JSONResponse struct {
+	// Data Examples: {"created_at":"2024-01-01T00:00:00Z","id":1,"name":"Yu-Gi-Oh!","updated_at":"2024-01-01T00:00:00Z"}
+	Data *GameResponse `json:"data,omitempty"`
+}
 
 func (response CreateGame200JSONResponse) VisitCreateGameResponse(w http.ResponseWriter) error {
 
@@ -3203,7 +3254,14 @@ type SearchGamesResponseObject interface {
 	VisitSearchGamesResponse(w http.ResponseWriter) error
 }
 
-type SearchGames200JSONResponse []GameResponse
+type SearchGames200JSONResponse struct {
+	Data *[]GameResponse `json:"data,omitempty"`
+	Meta *struct {
+		Page     *int `json:"page,omitempty"`
+		PageSize *int `json:"pageSize,omitempty"`
+		Total    *int `json:"total,omitempty"`
+	} `json:"meta,omitempty"`
+}
 
 func (response SearchGames200JSONResponse) VisitSearchGamesResponse(w http.ResponseWriter) error {
 
@@ -3240,7 +3298,9 @@ type DeleteGameResponseObject interface {
 }
 
 type DeleteGame200JSONResponse struct {
-	Message *string `json:"message,omitempty"`
+	Data *struct {
+		Message *string `json:"message,omitempty"`
+	} `json:"data,omitempty"`
 }
 
 func (response DeleteGame200JSONResponse) VisitDeleteGameResponse(w http.ResponseWriter) error {
@@ -3305,7 +3365,10 @@ type GetGameByIdResponseObject interface {
 	VisitGetGameByIdResponse(w http.ResponseWriter) error
 }
 
-type GetGameById200JSONResponse GameResponse
+type GetGameById200JSONResponse struct {
+	// Data Examples: {"created_at":"2024-01-01T00:00:00Z","id":1,"name":"Yu-Gi-Oh!","updated_at":"2024-01-01T00:00:00Z"}
+	Data *GameResponse `json:"data,omitempty"`
+}
 
 func (response GetGameById200JSONResponse) VisitGetGameByIdResponse(w http.ResponseWriter) error {
 
@@ -3370,7 +3433,10 @@ type UpdateGameResponseObject interface {
 	VisitUpdateGameResponse(w http.ResponseWriter) error
 }
 
-type UpdateGame200JSONResponse GameResponse
+type UpdateGame200JSONResponse struct {
+	// Data Examples: {"created_at":"2024-01-01T00:00:00Z","id":1,"name":"Yu-Gi-Oh!","updated_at":"2024-01-01T00:00:00Z"}
+	Data *GameResponse `json:"data,omitempty"`
+}
 
 func (response UpdateGame200JSONResponse) VisitUpdateGameResponse(w http.ResponseWriter) error {
 
@@ -3448,7 +3514,9 @@ type HealthResponseObject interface {
 }
 
 type Health200JSONResponse struct {
-	Status *string `json:"status,omitempty"`
+	Data *struct {
+		Status *string `json:"status,omitempty"`
+	} `json:"data,omitempty"`
 }
 
 func (response Health200JSONResponse) VisitHealthResponse(w http.ResponseWriter) error {
@@ -3485,7 +3553,14 @@ type GetLanguagesResponseObject interface {
 	VisitGetLanguagesResponse(w http.ResponseWriter) error
 }
 
-type GetLanguages200JSONResponse []LanguageResponse
+type GetLanguages200JSONResponse struct {
+	Data *[]LanguageResponse `json:"data,omitempty"`
+	Meta *struct {
+		Page     *int `json:"page,omitempty"`
+		PageSize *int `json:"pageSize,omitempty"`
+		Total    *int `json:"total,omitempty"`
+	} `json:"meta,omitempty"`
+}
 
 func (response GetLanguages200JSONResponse) VisitGetLanguagesResponse(w http.ResponseWriter) error {
 
@@ -3521,7 +3596,9 @@ type CreateLanguageResponseObject interface {
 	VisitCreateLanguageResponse(w http.ResponseWriter) error
 }
 
-type CreateLanguage200JSONResponse LanguageResponse
+type CreateLanguage200JSONResponse struct {
+	Data *LanguageResponse `json:"data,omitempty"`
+}
 
 func (response CreateLanguage200JSONResponse) VisitCreateLanguageResponse(w http.ResponseWriter) error {
 
@@ -3585,7 +3662,14 @@ type SearchLanguagesResponseObject interface {
 	VisitSearchLanguagesResponse(w http.ResponseWriter) error
 }
 
-type SearchLanguages200JSONResponse []LanguageResponse
+type SearchLanguages200JSONResponse struct {
+	Data *[]LanguageResponse `json:"data,omitempty"`
+	Meta *struct {
+		Page     *int `json:"page,omitempty"`
+		PageSize *int `json:"pageSize,omitempty"`
+		Total    *int `json:"total,omitempty"`
+	} `json:"meta,omitempty"`
+}
 
 func (response SearchLanguages200JSONResponse) VisitSearchLanguagesResponse(w http.ResponseWriter) error {
 
@@ -3679,7 +3763,9 @@ type GetLanguageByIdResponseObject interface {
 	VisitGetLanguageByIdResponse(w http.ResponseWriter) error
 }
 
-type GetLanguageById200JSONResponse LanguageResponse
+type GetLanguageById200JSONResponse struct {
+	Data *LanguageResponse `json:"data,omitempty"`
+}
 
 func (response GetLanguageById200JSONResponse) VisitGetLanguageByIdResponse(w http.ResponseWriter) error {
 
@@ -3744,7 +3830,9 @@ type UpdateLanguageResponseObject interface {
 	VisitUpdateLanguageResponse(w http.ResponseWriter) error
 }
 
-type UpdateLanguage200JSONResponse LanguageResponse
+type UpdateLanguage200JSONResponse struct {
+	Data *LanguageResponse `json:"data,omitempty"`
+}
 
 func (response UpdateLanguage200JSONResponse) VisitUpdateLanguageResponse(w http.ResponseWriter) error {
 
@@ -3822,7 +3910,10 @@ type ScanMediaResponseObject interface {
 	VisitScanMediaResponse(w http.ResponseWriter) error
 }
 
-type ScanMedia200JSONResponse MediaScanResponse
+type ScanMedia200JSONResponse struct {
+	// Data Examples: {"matches":[{"confidence":0.26,"detail":{"effect":"DARK","monster_effect":"","pendulum_effect":""},"konami_id":"81838198","name":"Crossout Designator"}],"processing_time":0.42,"success":true}
+	Data *MediaScanResponse `json:"data,omitempty"`
+}
 
 func (response ScanMedia200JSONResponse) VisitScanMediaResponse(w http.ResponseWriter) error {
 
@@ -3887,7 +3978,9 @@ type UploadMediaResponseObject interface {
 	VisitUploadMediaResponse(w http.ResponseWriter) error
 }
 
-type UploadMedia200JSONResponse MediaUploadResponse
+type UploadMedia200JSONResponse struct {
+	Data *MediaUploadResponse `json:"data,omitempty"`
+}
 
 func (response UploadMedia200JSONResponse) VisitUploadMediaResponse(w http.ResponseWriter) error {
 
@@ -4009,7 +4102,9 @@ type GetMediaByIdResponseObject interface {
 	VisitGetMediaByIdResponse(w http.ResponseWriter) error
 }
 
-type GetMediaById200JSONResponse MediaResponse
+type GetMediaById200JSONResponse struct {
+	Data *MediaResponse `json:"data,omitempty"`
+}
 
 func (response GetMediaById200JSONResponse) VisitGetMediaByIdResponse(w http.ResponseWriter) error {
 
@@ -4074,7 +4169,9 @@ type UpdateMediaResponseObject interface {
 	VisitUpdateMediaResponse(w http.ResponseWriter) error
 }
 
-type UpdateMedia200JSONResponse MediaResponse
+type UpdateMedia200JSONResponse struct {
+	Data *MediaResponse `json:"data,omitempty"`
+}
 
 func (response UpdateMedia200JSONResponse) VisitUpdateMediaResponse(w http.ResponseWriter) error {
 
@@ -4152,7 +4249,14 @@ type GetPacksResponseObject interface {
 	VisitGetPacksResponse(w http.ResponseWriter) error
 }
 
-type GetPacks200JSONResponse []PackResponse
+type GetPacks200JSONResponse struct {
+	Data *[]PackResponse `json:"data,omitempty"`
+	Meta *struct {
+		Page     *int `json:"page,omitempty"`
+		PageSize *int `json:"pageSize,omitempty"`
+		Total    *int `json:"total,omitempty"`
+	} `json:"meta,omitempty"`
+}
 
 func (response GetPacks200JSONResponse) VisitGetPacksResponse(w http.ResponseWriter) error {
 
@@ -4188,7 +4292,9 @@ type CreatePackResponseObject interface {
 	VisitCreatePackResponse(w http.ResponseWriter) error
 }
 
-type CreatePack200JSONResponse PackResponse
+type CreatePack200JSONResponse struct {
+	Data *PackResponse `json:"data,omitempty"`
+}
 
 func (response CreatePack200JSONResponse) VisitCreatePackResponse(w http.ResponseWriter) error {
 
@@ -4252,7 +4358,14 @@ type SearchPacksResponseObject interface {
 	VisitSearchPacksResponse(w http.ResponseWriter) error
 }
 
-type SearchPacks200JSONResponse []PackResponse
+type SearchPacks200JSONResponse struct {
+	Data *[]PackResponse `json:"data,omitempty"`
+	Meta *struct {
+		Page     *int `json:"page,omitempty"`
+		PageSize *int `json:"pageSize,omitempty"`
+		Total    *int `json:"total,omitempty"`
+	} `json:"meta,omitempty"`
+}
 
 func (response SearchPacks200JSONResponse) VisitSearchPacksResponse(w http.ResponseWriter) error {
 
@@ -4346,7 +4459,9 @@ type GetPackByIdResponseObject interface {
 	VisitGetPackByIdResponse(w http.ResponseWriter) error
 }
 
-type GetPackById200JSONResponse PackResponse
+type GetPackById200JSONResponse struct {
+	Data *PackResponse `json:"data,omitempty"`
+}
 
 func (response GetPackById200JSONResponse) VisitGetPackByIdResponse(w http.ResponseWriter) error {
 
@@ -4411,7 +4526,9 @@ type UpdatePackResponseObject interface {
 	VisitUpdatePackResponse(w http.ResponseWriter) error
 }
 
-type UpdatePack200JSONResponse PackResponse
+type UpdatePack200JSONResponse struct {
+	Data *PackResponse `json:"data,omitempty"`
+}
 
 func (response UpdatePack200JSONResponse) VisitUpdatePackResponse(w http.ResponseWriter) error {
 
@@ -4489,7 +4606,14 @@ type GetRaritiesResponseObject interface {
 	VisitGetRaritiesResponse(w http.ResponseWriter) error
 }
 
-type GetRarities200JSONResponse []RarityResponse
+type GetRarities200JSONResponse struct {
+	Data *[]RarityResponse `json:"data,omitempty"`
+	Meta *struct {
+		Page     *int `json:"page,omitempty"`
+		PageSize *int `json:"pageSize,omitempty"`
+		Total    *int `json:"total,omitempty"`
+	} `json:"meta,omitempty"`
+}
 
 func (response GetRarities200JSONResponse) VisitGetRaritiesResponse(w http.ResponseWriter) error {
 
@@ -4525,7 +4649,9 @@ type CreateRarityResponseObject interface {
 	VisitCreateRarityResponse(w http.ResponseWriter) error
 }
 
-type CreateRarity200JSONResponse RarityResponse
+type CreateRarity200JSONResponse struct {
+	Data *RarityResponse `json:"data,omitempty"`
+}
 
 func (response CreateRarity200JSONResponse) VisitCreateRarityResponse(w http.ResponseWriter) error {
 
@@ -4589,7 +4715,14 @@ type SearchRaritiesResponseObject interface {
 	VisitSearchRaritiesResponse(w http.ResponseWriter) error
 }
 
-type SearchRarities200JSONResponse []RarityResponse
+type SearchRarities200JSONResponse struct {
+	Data *[]RarityResponse `json:"data,omitempty"`
+	Meta *struct {
+		Page     *int `json:"page,omitempty"`
+		PageSize *int `json:"pageSize,omitempty"`
+		Total    *int `json:"total,omitempty"`
+	} `json:"meta,omitempty"`
+}
 
 func (response SearchRarities200JSONResponse) VisitSearchRaritiesResponse(w http.ResponseWriter) error {
 
@@ -4683,7 +4816,9 @@ type GetRarityByIdResponseObject interface {
 	VisitGetRarityByIdResponse(w http.ResponseWriter) error
 }
 
-type GetRarityById200JSONResponse RarityResponse
+type GetRarityById200JSONResponse struct {
+	Data *RarityResponse `json:"data,omitempty"`
+}
 
 func (response GetRarityById200JSONResponse) VisitGetRarityByIdResponse(w http.ResponseWriter) error {
 
@@ -4748,7 +4883,9 @@ type UpdateRarityResponseObject interface {
 	VisitUpdateRarityResponse(w http.ResponseWriter) error
 }
 
-type UpdateRarity200JSONResponse RarityResponse
+type UpdateRarity200JSONResponse struct {
+	Data *RarityResponse `json:"data,omitempty"`
+}
 
 func (response UpdateRarity200JSONResponse) VisitUpdateRarityResponse(w http.ResponseWriter) error {
 
@@ -4826,7 +4963,14 @@ type GetStoragesResponseObject interface {
 	VisitGetStoragesResponse(w http.ResponseWriter) error
 }
 
-type GetStorages200JSONResponse []StorageResponse
+type GetStorages200JSONResponse struct {
+	Data *[]StorageResponse `json:"data,omitempty"`
+	Meta *struct {
+		Page     *int `json:"page,omitempty"`
+		PageSize *int `json:"pageSize,omitempty"`
+		Total    *int `json:"total,omitempty"`
+	} `json:"meta,omitempty"`
+}
 
 func (response GetStorages200JSONResponse) VisitGetStoragesResponse(w http.ResponseWriter) error {
 
@@ -4876,7 +5020,9 @@ type CreateStorageResponseObject interface {
 	VisitCreateStorageResponse(w http.ResponseWriter) error
 }
 
-type CreateStorage200JSONResponse StorageResponse
+type CreateStorage200JSONResponse struct {
+	Data *StorageResponse `json:"data,omitempty"`
+}
 
 func (response CreateStorage200JSONResponse) VisitCreateStorageResponse(w http.ResponseWriter) error {
 
@@ -4940,7 +5086,14 @@ type SearchStoragesResponseObject interface {
 	VisitSearchStoragesResponse(w http.ResponseWriter) error
 }
 
-type SearchStorages200JSONResponse []StorageResponse
+type SearchStorages200JSONResponse struct {
+	Data *[]StorageResponse `json:"data,omitempty"`
+	Meta *struct {
+		Page     *int `json:"page,omitempty"`
+		PageSize *int `json:"pageSize,omitempty"`
+		Total    *int `json:"total,omitempty"`
+	} `json:"meta,omitempty"`
+}
 
 func (response SearchStorages200JSONResponse) VisitSearchStoragesResponse(w http.ResponseWriter) error {
 
@@ -5048,7 +5201,9 @@ type GetStorageByIdResponseObject interface {
 	VisitGetStorageByIdResponse(w http.ResponseWriter) error
 }
 
-type GetStorageById200JSONResponse StorageResponse
+type GetStorageById200JSONResponse struct {
+	Data *StorageResponse `json:"data,omitempty"`
+}
 
 func (response GetStorageById200JSONResponse) VisitGetStorageByIdResponse(w http.ResponseWriter) error {
 
@@ -5113,7 +5268,9 @@ type UpdateStorageResponseObject interface {
 	VisitUpdateStorageResponse(w http.ResponseWriter) error
 }
 
-type UpdateStorage200JSONResponse StorageResponse
+type UpdateStorage200JSONResponse struct {
+	Data *StorageResponse `json:"data,omitempty"`
+}
 
 func (response UpdateStorage200JSONResponse) VisitUpdateStorageResponse(w http.ResponseWriter) error {
 
@@ -5190,7 +5347,14 @@ type GetUsersResponseObject interface {
 	VisitGetUsersResponse(w http.ResponseWriter) error
 }
 
-type GetUsers200JSONResponse []UserResponse
+type GetUsers200JSONResponse struct {
+	Data *[]UserResponse `json:"data,omitempty"`
+	Meta *struct {
+		Page     *int `json:"page,omitempty"`
+		PageSize *int `json:"pageSize,omitempty"`
+		Total    *int `json:"total,omitempty"`
+	} `json:"meta,omitempty"`
+}
 
 func (response GetUsers200JSONResponse) VisitGetUsersResponse(w http.ResponseWriter) error {
 
@@ -5240,7 +5404,10 @@ type CreateUserResponseObject interface {
 	VisitCreateUserResponse(w http.ResponseWriter) error
 }
 
-type CreateUser200JSONResponse UserResponse
+type CreateUser200JSONResponse struct {
+	// Data Examples: {"age":30,"created_at":"2024-01-01T00:00:00Z","email":"alice@example.com","id":1,"name":"Alice","role":"editor","updated_at":"2024-06-01T00:00:00Z"}
+	Data *UserResponse `json:"data,omitempty"`
+}
 
 func (response CreateUser200JSONResponse) VisitCreateUserResponse(w http.ResponseWriter) error {
 
@@ -5362,7 +5529,10 @@ type GetUserByIdResponseObject interface {
 	VisitGetUserByIdResponse(w http.ResponseWriter) error
 }
 
-type GetUserById200JSONResponse UserResponse
+type GetUserById200JSONResponse struct {
+	// Data Examples: {"age":30,"created_at":"2024-01-01T00:00:00Z","email":"alice@example.com","id":1,"name":"Alice","role":"editor","updated_at":"2024-06-01T00:00:00Z"}
+	Data *UserResponse `json:"data,omitempty"`
+}
 
 func (response GetUserById200JSONResponse) VisitGetUserByIdResponse(w http.ResponseWriter) error {
 
@@ -5427,7 +5597,10 @@ type UpdateUserResponseObject interface {
 	VisitUpdateUserResponse(w http.ResponseWriter) error
 }
 
-type UpdateUser200JSONResponse UserResponse
+type UpdateUser200JSONResponse struct {
+	// Data Examples: {"age":30,"created_at":"2024-01-01T00:00:00Z","email":"alice@example.com","id":1,"name":"Alice","role":"editor","updated_at":"2024-06-01T00:00:00Z"}
+	Data *UserResponse `json:"data,omitempty"`
+}
 
 func (response UpdateUser200JSONResponse) VisitUpdateUserResponse(w http.ResponseWriter) error {
 

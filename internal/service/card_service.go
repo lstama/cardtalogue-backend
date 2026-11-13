@@ -148,10 +148,10 @@ func (s *cardService) GetCardProtected(id uint) (*models.CardProtectedResponse, 
 func (s *cardService) GetCards(limit, offset int) ([]*models.CardResponse, int64, error) {
 	// Set default limit if not provided
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 
 	cards, err := s.cardRepo.GetAll(limit, offset)
@@ -175,10 +175,10 @@ func (s *cardService) GetCards(limit, offset int) ([]*models.CardResponse, int64
 func (s *cardService) GetCardsPublic(limit, offset int) ([]*models.CardResponse, int64, error) {
 	// Set default limit if not provided
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 
 	cards, err := s.cardRepo.GetAllWithStatus(limit, offset, false)
@@ -202,10 +202,10 @@ func (s *cardService) GetCardsPublic(limit, offset int) ([]*models.CardResponse,
 func (s *cardService) GetCardsProtected(limit, offset int) ([]*models.CardProtectedResponse, int64, error) {
 	// Set default limit if not provided
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 
 	cards, err := s.cardRepo.GetAll(limit, offset)
@@ -421,10 +421,10 @@ func (s *cardService) toCardProtectedResponse(card *models.Card) *models.CardPro
 func (s *cardService) SearchCards(game_id int, language_id int, pack_id int, query_string string, limit, offset int) ([]*models.CardResponse, int64, error) {
 	// Set default limit if not provided
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 
 	cards, total, err := s.cardRepo.Search(game_id, language_id, pack_id, query_string, limit, offset)
@@ -443,10 +443,10 @@ func (s *cardService) SearchCards(game_id int, language_id int, pack_id int, que
 func (s *cardService) SearchCardsPublic(game_id int, language_id int, pack_id int, query_string string, limit, offset int) ([]*models.CardResponse, int64, error) {
 	// Set default limit if not provided
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 
 	cards, total, err := s.cardRepo.SearchWithStatus(game_id, language_id, pack_id, query_string, limit, offset, false)

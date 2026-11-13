@@ -8,7 +8,7 @@ import (
 
 func (s *shared) GetRarities(ctx context.Context, req gen.GetRaritiesRequestObject) (gen.GetRaritiesResponseObject, error) {
 	limit, offset := listParams(req.Params.Limit, req.Params.Offset)
-	rarities, _, err := s.services.Rarities.GetRarities(limit, offset)
+	rarities, total, err := s.services.Rarities.GetRarities(limit, offset)
 	if err != nil {
 		return gen.GetRarities500JSONResponse{ServerErrorJSONResponse: gen.ServerErrorJSONResponse{Error: err.Error()}}, nil
 	}
@@ -16,12 +16,12 @@ func (s *shared) GetRarities(ctx context.Context, req gen.GetRaritiesRequestObje
 	for _, r := range rarities {
 		out = append(out, toRarityResponse(r))
 	}
-	return gen.GetRarities200JSONResponse(out), nil
+	return gen.GetRarities200JSONResponse{Data: &out, Meta: newListMeta(limit, offset, total)}, nil
 }
 
 func (s *shared) SearchRarities(ctx context.Context, req gen.SearchRaritiesRequestObject) (gen.SearchRaritiesResponseObject, error) {
 	limit, offset := listParams(req.Params.Limit, req.Params.Offset)
-	rarities, _, err := s.services.Rarities.SearchRarities(derefStr(req.Params.Query), limit, offset)
+	rarities, total, err := s.services.Rarities.SearchRarities(derefStr(req.Params.Query), limit, offset)
 	if err != nil {
 		return gen.SearchRarities500JSONResponse{ServerErrorJSONResponse: gen.ServerErrorJSONResponse{Error: err.Error()}}, nil
 	}
@@ -29,7 +29,7 @@ func (s *shared) SearchRarities(ctx context.Context, req gen.SearchRaritiesReque
 	for _, r := range rarities {
 		out = append(out, toRarityResponse(r))
 	}
-	return gen.SearchRarities200JSONResponse(out), nil
+	return gen.SearchRarities200JSONResponse{Data: &out, Meta: newListMeta(limit, offset, total)}, nil
 }
 
 func (s *shared) GetRarityById(ctx context.Context, req gen.GetRarityByIdRequestObject) (gen.GetRarityByIdResponseObject, error) {
@@ -40,7 +40,7 @@ func (s *shared) GetRarityById(ctx context.Context, req gen.GetRarityByIdRequest
 		}
 		return gen.GetRarityById500JSONResponse{ServerErrorJSONResponse: gen.ServerErrorJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.GetRarityById200JSONResponse(toRarityResponse(r)), nil
+	return gen.GetRarityById200JSONResponse{Data: ptrTo(toRarityResponse(r))}, nil
 }
 
 func (s *shared) CreateRarity(ctx context.Context, req gen.CreateRarityRequestObject) (gen.CreateRarityResponseObject, error) {
@@ -48,7 +48,7 @@ func (s *shared) CreateRarity(ctx context.Context, req gen.CreateRarityRequestOb
 	if err != nil {
 		return gen.CreateRarity400JSONResponse{BadRequestJSONResponse: gen.BadRequestJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.CreateRarity200JSONResponse(toRarityResponse(r)), nil
+	return gen.CreateRarity200JSONResponse{Data: ptrTo(toRarityResponse(r))}, nil
 }
 
 func (s *shared) UpdateRarity(ctx context.Context, req gen.UpdateRarityRequestObject) (gen.UpdateRarityResponseObject, error) {
@@ -59,7 +59,7 @@ func (s *shared) UpdateRarity(ctx context.Context, req gen.UpdateRarityRequestOb
 		}
 		return gen.UpdateRarity400JSONResponse{BadRequestJSONResponse: gen.BadRequestJSONResponse{Error: err.Error()}}, nil
 	}
-	return gen.UpdateRarity200JSONResponse(toRarityResponse(r)), nil
+	return gen.UpdateRarity200JSONResponse{Data: ptrTo(toRarityResponse(r))}, nil
 }
 
 func (s *shared) DeleteRarity(ctx context.Context, req gen.DeleteRarityRequestObject) (gen.DeleteRarityResponseObject, error) {

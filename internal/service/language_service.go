@@ -45,10 +45,10 @@ func (s *languageService) GetLanguage(id uint) (*models.LanguageResponse, error)
 
 func (s *languageService) GetLanguages(limit, offset int) ([]*models.LanguageResponse, int64, error) {
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 	languages, err := s.languageRepo.GetAll(limit, offset)
 	if err != nil {
@@ -101,10 +101,10 @@ func (s *languageService) toLanguageResponse(language *models.Language) *models.
 
 func (s *languageService) SearchLanguages(query_string string, limit, offset int) ([]*models.LanguageResponse, int64, error) {
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 	languages, total, err := s.languageRepo.Search(query_string, limit, offset)
 	if err != nil {

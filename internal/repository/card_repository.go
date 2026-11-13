@@ -2,9 +2,9 @@ package repository
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/lstama/cardtalogue-backend/internal/models"
+	"github.com/lstama/cardtalogue-backend/internal/utils"
 
 	"gorm.io/gorm"
 )
@@ -124,9 +124,11 @@ func (r *cardRepository) SearchWithStatus(gameID, languageID, packID int, queryS
 		baseQuery = baseQuery.Where("pack_id = ?", packID)
 	}
 	if queryString != "" {
-		queryString = strings.ToLower(queryString)
-		likeQuery := fmt.Sprintf("%%%s%%", queryString)
-		baseQuery = baseQuery.Where("lowercase_name LIKE ? OR lowercase_code LIKE ?", likeQuery, likeQuery)
+		queryString = utils.Normalize(queryString)
+		if queryString != "" {
+			likeQuery := fmt.Sprintf("%%%s%%", queryString)
+			baseQuery = baseQuery.Where("lowercase_name LIKE ? OR lowercase_code LIKE ?", likeQuery, likeQuery)
+		}
 	}
 	if !includeDisabled {
 		baseQuery = baseQuery.Where("status = ?", "enabled")

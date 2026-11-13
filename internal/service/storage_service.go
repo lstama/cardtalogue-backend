@@ -45,10 +45,10 @@ func (s *storageService) GetStorage(id uint) (*models.StorageResponse, error) {
 
 func (s *storageService) GetStorages(limit, offset int) ([]*models.StorageResponse, int64, error) {
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 	storages, err := s.storageRepo.GetAll(limit, offset)
 	if err != nil {
@@ -102,10 +102,10 @@ func (s *storageService) toStorageResponse(storage *models.Storage) *models.Stor
 
 func (s *storageService) SearchStorages(query_string string, limit, offset int) ([]*models.StorageResponse, int64, error) {
 	if limit <= 0 {
-		limit = 20
-	}
-	if limit > 100 {
 		limit = 100
+	}
+	if limit > 1000 {
+		limit = 1000
 	}
 	storages, total, err := s.storageRepo.Search(query_string, limit, offset)
 	if err != nil {
