@@ -3,7 +3,7 @@ info:
   title: Cardtalogue Backend API
   description: |
     Contract for the Cardtalogue Go/Gin backend. This is a snapshot of current behavior (see DISCREPANCIES.md in the parent repo). The frontend adopts the subset of these endpoints it calls; the full surface is documented here.
-  version: 1.0.0
+  version: 1.1.0
 servers:
   - url: http://localhost:8080
     description: Local
@@ -62,8 +62,10 @@ paths:
         - auth
       security: []
       summary: Log in
-      description: "Authenticate a user with email and password, returning access and refresh tokens."
+      description: "Authenticate a user with email and password, returning access and refresh tokens. When the backend runs with CAPTCHA_MODE=on the request must also carry a valid CAP proof-of-work token in the X-Cap-Token header; otherwise it responds 400 with an ErrorResponse (captcha required, failed, or unavailable)."
       operationId: login
+      parameters:
+        - $ref: '#/components/parameters/CapToken'
       requestBody:
         required: true
         content:
@@ -1449,6 +1451,8 @@ paths:
         Recognize a card from an uploaded image. Requires a valid JWT and a CAPTCHA token (X-Cap-Token) when CAPTCHA_MODE=on. Multipart field: file.
       description: "Upload an image and return card matches with confidence scores."
       operationId: scanMedia
+      parameters:
+        - $ref: '#/components/parameters/CapToken'
       requestBody:
         required: true
         content:
@@ -1473,7 +1477,7 @@ paths:
 
           description: 200 response
         '400':
-          description: Bad request (missing file / captcha)
+          description: Bad request (missing file; or captcha required/failed/unavailable when CAPTCHA_MODE=on)
           content:
             application/json:
               schema:
@@ -1642,6 +1646,14 @@ components:
       schema:
         type: integer
         format: uint32
+    CapToken:
+      name: X-Cap-Token
+      in: header
+      required: false
+      description: "CAP proof-of-work token. Optional in the contract, but REQUIRED when the backend runs with CAPTCHA_MODE=on; a missing, invalid, or unavailable token then returns 400 ErrorResponse. Omit when CAPTCHA_MODE=off."
+      schema:
+        type: string
+        example: "cap.1.0.0:example-proof-token"
   schemas:
     ErrorResponse:
       type: object

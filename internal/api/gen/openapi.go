@@ -643,6 +643,9 @@ type UserResponse struct {
 // UserResponseRole defines model for UserResponse.Role.
 type UserResponseRole string
 
+// CapToken defines model for CapToken.
+type CapToken = string
+
 // Id defines model for Id.
 type Id = uint32
 
@@ -666,6 +669,12 @@ type ServerError = ErrorResponse
 
 // Unauthorized Examples: {"error":"media not found"}
 type Unauthorized = ErrorResponse
+
+// LoginParams defines parameters for Login.
+type LoginParams struct {
+	// XCapToken CAP proof-of-work token. Optional in the contract, but REQUIRED when the backend runs with CAPTCHA_MODE=on; a missing, invalid, or unavailable token then returns 400 ErrorResponse. Omit when CAPTCHA_MODE=off.
+	XCapToken *CapToken `json:"X-Cap-Token,omitempty"`
+}
 
 // GetCardsParams defines parameters for GetCards.
 type GetCardsParams struct {
@@ -742,6 +751,12 @@ type SearchLanguagesParams struct {
 // ScanMediaMultipartBody defines parameters for ScanMedia.
 type ScanMediaMultipartBody struct {
 	File openapi_types.File `json:"file"`
+}
+
+// ScanMediaParams defines parameters for ScanMedia.
+type ScanMediaParams struct {
+	// XCapToken CAP proof-of-work token. Optional in the contract, but REQUIRED when the backend runs with CAPTCHA_MODE=on; a missing, invalid, or unavailable token then returns 400 ErrorResponse. Omit when CAPTCHA_MODE=off.
+	XCapToken *CapToken `json:"X-Cap-Token,omitempty"`
 }
 
 // UploadMediaMultipartBody defines parameters for UploadMedia.
@@ -880,7 +895,7 @@ type UpdateUserJSONRequestBody = UpdateUserRequest
 type ServerInterface interface {
 	// Login Log in
 	// (POST /auth/login)
-	Login(c *gin.Context)
+	Login(c *gin.Context, params LoginParams)
 	// Logout Invalidate the refresh token (read from X-Refresh-Token header)
 	// (POST /auth/logout)
 	Logout(c *gin.Context)
@@ -952,7 +967,7 @@ type ServerInterface interface {
 	UpdateLanguage(c *gin.Context, id Id)
 	// ScanMedia Recognize a card from an uploaded image. Requires a valid JWT and a CAPTCHA token (X-Cap-Token) when CAPTCHA_MODE=on. Multipart field: file.
 	// (POST /media/scan)
-	ScanMedia(c *gin.Context)
+	ScanMedia(c *gin.Context, params ScanMediaParams)
 	// UploadMedia Upload an image. Multipart field: file. Optional query param also_scan=true triggers recognition and returns matches.
 	// (POST /media/upload)
 	UploadMedia(c *gin.Context, params UploadMediaParams)
@@ -1048,6 +1063,33 @@ type MiddlewareFunc func(c *gin.Context)
 // Login operation middleware
 func (siw *ServerInterfaceWrapper) Login(c *gin.Context) {
 
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params LoginParams
+
+	headers := c.Request.Header
+
+	// ------------- Optional header parameter "X-Cap-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Cap-Token")]; found {
+		var XCapToken CapToken
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Cap-Token, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Cap-Token", valueList[0], &XCapToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Cap-Token: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XCapToken = &XCapToken
+
+	}
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {
@@ -1055,7 +1097,7 @@ func (siw *ServerInterfaceWrapper) Login(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.Login(c)
+	siw.Handler.Login(c, params)
 }
 
 // Logout operation middleware
@@ -1682,6 +1724,33 @@ func (siw *ServerInterfaceWrapper) UpdateLanguage(c *gin.Context) {
 // ScanMedia operation middleware
 func (siw *ServerInterfaceWrapper) ScanMedia(c *gin.Context) {
 
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ScanMediaParams
+
+	headers := c.Request.Header
+
+	// ------------- Optional header parameter "X-Cap-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Cap-Token")]; found {
+		var XCapToken CapToken
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Cap-Token, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Cap-Token", valueList[0], &XCapToken, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Cap-Token: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XCapToken = &XCapToken
+
+	}
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {
@@ -1689,7 +1758,7 @@ func (siw *ServerInterfaceWrapper) ScanMedia(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.ScanMedia(c)
+	siw.Handler.ScanMedia(c, params)
 }
 
 // UploadMedia operation middleware
@@ -2501,7 +2570,8 @@ type ServerErrorJSONResponse ErrorResponse
 type UnauthorizedJSONResponse ErrorResponse
 
 type LoginRequestObject struct {
-	Body *LoginJSONRequestBody
+	Params LoginParams
+	Body   *LoginJSONRequestBody
 }
 
 type LoginResponseObject interface {
@@ -3903,7 +3973,8 @@ func (response UpdateLanguage404JSONResponse) VisitUpdateLanguageResponse(w http
 }
 
 type ScanMediaRequestObject struct {
-	Body *multipart.Reader
+	Params ScanMediaParams
+	Body   *multipart.Reader
 }
 
 type ScanMediaResponseObject interface {
@@ -5888,8 +5959,10 @@ type strictHandler struct {
 }
 
 // Login operation middleware
-func (sh *strictHandler) Login(ctx *gin.Context) {
+func (sh *strictHandler) Login(ctx *gin.Context, params LoginParams) {
 	var request LoginRequestObject
+
+	request.Params = params
 
 	var body LoginJSONRequestBody
 	var err error
@@ -6660,8 +6733,10 @@ func (sh *strictHandler) UpdateLanguage(ctx *gin.Context, id Id) {
 }
 
 // ScanMedia operation middleware
-func (sh *strictHandler) ScanMedia(ctx *gin.Context) {
+func (sh *strictHandler) ScanMedia(ctx *gin.Context, params ScanMediaParams) {
 	var request ScanMediaRequestObject
+
+	request.Params = params
 
 	if reader, err := ctx.Request.MultipartReader(); err != nil {
 		sh.options.RequestErrorHandlerFunc(ctx, err)
