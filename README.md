@@ -129,6 +129,27 @@ This repo consumes the shared contract. To change the API:
 
 See [`cardtalogue-api-contract/README.md`](https://github.com/lstama/cardtalogue-api-contract/blob/master/README.md) for details.
 
+### Contract CI (owner of the calls)
+
+`.github/workflows/contract-check.yml` owns the "no orphan calls" check for the backend → scanner
+boundary. It checks out the contract repo at `CONTRACT_REF` (default `v1.1.0`; override with the
+`CONTRACT_REF` repo variable/secret or the `workflow_dispatch` input), runs
+`CONTRACT_PATH=../cardtalogue-api-contract make sync-contract`, fails if the committed
+`internal/api/gen/backend.yaml` differs from the pinned tag, runs `make verify-contract`, then
+`scripts/check-scanner-calls.mjs` (every scanner call traced from `http.NewRequest*` to
+`CARD_SCAN_API_URL` must exist in the pinned `contracts/scanner.yaml`), then `go build ./...` and
+`go test ./...`. The workflow pins `oapi-codegen` to the version that generated the committed code.
+Until the contract `v1.1.0` tag exists the job fails at the contract checkout; that is the intended
+release gate.
+
+Local run (against a sibling contract checkout):
+
+```bash
+node scripts/check-scanner-calls.mjs --contract ../cardtalogue-api-contract
+```
+
+See [`cardtalogue-api-contract/README.md`](https://github.com/lstama/cardtalogue-api-contract/blob/master/README.md) for details.
+
 ## Development
 
 ```bash
