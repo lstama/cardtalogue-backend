@@ -3,27 +3,14 @@ package handlers
 import (
 	"context"
 
-	"github.com/gin-gonic/gin"
 	"github.com/lstama/cardtalogue-backend/internal/api/gen"
 )
 
 func (s *shared) ScanMedia(ctx context.Context, req gen.ScanMediaRequestObject) (gen.ScanMediaResponseObject, error) {
-	// Proof-of-Work captcha (preserved from the old route). ctx is the gin context
-	// at runtime; verify the token header before processing.
-	if ginCtx, ok := ctx.(*gin.Context); ok {
-		if s.verifier.Enabled() {
-			token := ginCtx.GetHeader("X-Cap-Token")
-			if token == "" {
-				return gen.ScanMedia400JSONResponse{Error: "captcha required"}, nil
-			}
-			ok, err := s.verifier.Verify(ginCtx.Request.Context(), token)
-			if err != nil {
-				return gen.ScanMedia400JSONResponse{Error: "captcha unavailable"}, nil
-			}
-			if !ok {
-				return gen.ScanMedia400JSONResponse{Error: "captcha failed"}, nil
-			}
-		}
+	// Proof-of-work captcha (preserved from the old route), now driven by the
+	// typed X-Cap-Token header parameter instead of a gin context assertion.
+	if msg := s.verifyCaptcha(ctx, req.Params.XCapToken); msg != "" {
+		return gen.ScanMedia400JSONResponse{Error: msg}, nil
 	}
 
 	fh, err := extractFileHeader(req.Body)

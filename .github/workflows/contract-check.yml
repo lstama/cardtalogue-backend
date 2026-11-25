@@ -1,0 +1,87 @@
+name: contract
+
+# Owner-side contract check for the backend.
+#
+# The contract repo no longer tries to enforce "no orphan calls" (it cannot see
+# the consumers). Each consumer checks its own calls against the contract version
+# it pins, on its own PRs. See the contract repo's README/CONTRIBUTING.
+#
+# Sequencing: this job checks out the contract at CONTRACT_REF (default
+# `v1.1.0`). Until that tag exists it fails at the checkout step — that is the
+# intended release gate, not a bug. For pre-tag testing set the value below.
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      contract_ref:
+        description: Contract git ref (tag/branch/SHA) to check against
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    env:
+      # Resolution order: workflow_dispatch input -> repo variable -> repo
+      # secret -> pinned default. `vars.CONTRACT_REF` is the normal override.
+      CONTRACT_REF: ${{ inputs.contract_ref || vars.CONTRACT_REF || secrets.CONTRACT_REF || 'v1.1.0' }}
+      CONTRACT_PATH: ../cardtalogue-api-contract
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout backend
+        uses: actions/checkout@v4
+        with:
+          path: backend
+
+      - name: Checkout contract (${{ env.CONTRACT_REF }})
+        uses: actions/checkout@v4
+        with:
+          repository: lstama/cardtalogue-api-contract
+          ref: ${{ env.CONTRACT_REF }}
+          path: cardtalogue-api-contract
+          # Public repo: GITHUB_TOKEN can read it. Set a CONTRACT_TOKEN secret
+          # only if the contract repo is private.
+          token: ${{ secrets.CONTRACT_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Install oapi-codegen (pinned)
+        # Pinned to the version that generated the committed internal/api/gen
+        # code. Newer releases (v2.9.0+) change the generated output, which would
+        # make verify-contract fail on generator drift, not on contract drift.
+        # Bump this together with a `make generate` commit.
+        run: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.8.2
+
+      - name: Sync pinned contract into internal/api/gen
+        run: make sync-contract
+
+      - name: Committed contract copy matches the pinned tag
+        run: |
+          if ! git diff --quiet -- internal/api/gen/backend.yaml; then
+            echo "internal/api/gen/backend.yaml differs from contract $CONTRACT_REF:"
+            git diff -- internal/api/gen/backend.yaml | head -50
+            echo "Run 'make sync-contract && make generate' and commit the result."
+            exit 1
+          fi
+          echo "internal/api/gen/backend.yaml matches contract $CONTRACT_REF"
+
+      - name: Generated Go code matches the pinned contract
+        run: make verify-contract
+
+      - name: Scanner calls are covered by contracts/scanner.yaml
+        run: node scripts/check-scanner-calls.mjs --contract "$CONTRACT_PATH"
+
+      - name: Build
+        run: go build ./...
+
+      - name: Test
+        run: go test ./...

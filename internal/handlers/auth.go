@@ -104,6 +104,13 @@ func fromLoginRequest(r *gen.LoginRequest) *models.LoginRequest {
 }
 
 func (s *shared) Login(ctx context.Context, req gen.LoginRequestObject) (gen.LoginResponseObject, error) {
+	// CAP proof-of-work gate. Runs before credential verification so a request
+	// without a valid token never reaches AuthService.Login, and so failures are
+	// reported as 400 (not 401) exactly like ScanMedia.
+	if msg := s.verifyCaptcha(ctx, req.Params.XCapToken); msg != "" {
+		return gen.Login400JSONResponse{BadRequestJSONResponse: gen.BadRequestJSONResponse{Error: msg}}, nil
+	}
+
 	authResp, err := s.services.Auth.Login(fromLoginRequest(req.Body))
 	if err != nil {
 		return gen.Login401JSONResponse{UnauthorizedJSONResponse: gen.UnauthorizedJSONResponse{Error: "invalid credentials"}}, nil

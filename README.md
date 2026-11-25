@@ -25,7 +25,8 @@ Base path: `/api/v1`.
 
 | Group | Methods | Auth | Notes |
 | --- | --- | --- | --- |
-| `/auth/login`, `/auth/refresh`, `/auth/logout` | POST | public | Issue / rotate / revoke tokens. |
+| `/auth/login` | POST | public + captcha | Issue tokens. When `CAPTCHA_MODE=on` a valid `X-Cap-Token` proof-of-work header is required; CAPTCHA failures are `400` with an `error` message. |
+| `/auth/refresh`, `/auth/logout` | POST | public | Rotate / revoke tokens. |
 | `/cards`, `/cards/:id`, `/cards/search` | GET | token | Read cards. |
 | `/cards` (POST), `/cards/:id` (PUT/DELETE) | — | editor / admin | Create / update / delete. Delete is admin-only. |
 | `/cards/protected`, `/cards/protected/:id` | GET | editor + | Sensitive read view. |
@@ -95,6 +96,27 @@ See [`.env.example`](.env.example) for the full list. Key variables:
 - `ADMIN_EMAIL` / `ADMIN_PASSWORD` — seed admin credentials (dev only).
 - `DATABASE_URL` — leave unset for SQLite; set to a `postgres://` URL for Postgres.
 - `PORT` — listen port (default `8080`).
+- `CAPTCHA_MODE` — `off` (default) disables the CAP proof-of-work gate; any other
+  value enables it, which then requires a valid `X-Cap-Token` header on
+  `POST /api/v1/auth/login` and `POST /api/v1/media/scan` (a missing, rejected, or
+  unverifiable token returns `400` with `captcha required` / `captcha failed` /
+  `captcha unavailable`). **Production forbids `off`**: the server refuses to start
+  when `ENVIRONMENT=production` (compared case- and whitespace-insensitively) and the
+  mode is `off`. Only the exact value `off` disables the gate, so a typo or unknown
+  value leaves CAP verification enabled.
+- `ENVIRONMENT` — defaults to `development` when unset, and that default does **not**
+  enable the safeguard above. Every production deployment must set
+  `ENVIRONMENT=production` explicitly; otherwise `CAPTCHA_MODE=off` is accepted there too.
+- `CAP_URL` / `CAP_SECRET` — required when CAPTCHA is enabled. `CAP_URL` is the CAP
+  site URL including the site-key path segment (`https://<captcha-host>/<site-key>`;
+  the backend posts to `<CAP_URL>/siteverify`). Surrounding whitespace and trailing
+  slashes are trimmed until the value is stable (including a space before a trailing
+  slash), and a bare host (`https://captcha.example.com`) is rejected
+  because the site-key segment is mandatory; `user:password@` userinfo, query strings
+  and fragments are rejected so credentials never reach logs and `/siteverify` is not
+  appended to the wrong URL component. `CAP_SECRET` is the CAP server secret (surrounding
+  whitespace is trimmed; a blank value is rejected). The server refuses to start if
+  either value is missing or malformed while the gate is enabled.
 
 ## How to run
 
@@ -126,6 +148,25 @@ This repo consumes the shared contract. To change the API:
 3. Rebuild this repo (`go mod tidy` if the generated types changed), then regenerate local docs:
    `swag init` (or `make docs`).
 4. Run `make test` and the breaking-change check before merging.
+
+### Contract CI (owner of the calls)
+
+`.github/workflows/contract-check.yml` owns the "no orphan calls" check for the backend → scanner
+boundary. It checks out the contract repo at `CONTRACT_REF` (default `v1.1.0`; override with the
+`CONTRACT_REF` repo variable/secret or the `workflow_dispatch` input), runs
+`CONTRACT_PATH=../cardtalogue-api-contract make sync-contract`, fails if the committed
+`internal/api/gen/backend.yaml` differs from the pinned tag, runs `make verify-contract`, then
+`scripts/check-scanner-calls.mjs` (every scanner call traced from `http.NewRequest*` to
+`CARD_SCAN_API_URL` must exist in the pinned `contracts/scanner.yaml`), then `go build ./...` and
+`go test ./...`. The workflow pins `oapi-codegen` to the version that generated the committed code.
+Until the contract `v1.1.0` tag exists the job fails at the contract checkout; that is the intended
+release gate.
+
+Local run (against a sibling contract checkout):
+
+```bash
+node scripts/check-scanner-calls.mjs --contract ../cardtalogue-api-contract
+```
 
 See [`cardtalogue-api-contract/README.md`](https://github.com/lstama/cardtalogue-api-contract/blob/master/README.md) for details.
 
